@@ -1,12 +1,12 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
   HardHat,
   Package,
-  FileText,
   Settings,
   Building2,
+  LogOut,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -17,22 +17,31 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Users, label: 'Clients', path: '/admin/clients' },
   { icon: HardHat, label: 'Labours', path: '/admin/labours' },
   { icon: Package, label: 'Resources', path: '/admin/resources' },
-  { icon: FileText, label: 'Reports', path: '/admin/reports' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
 
 export function AdminSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { state } = useSidebar();
+  const { user, logout } = useAuth();
   const collapsed = state === 'collapsed';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -90,6 +99,32 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="p-4 border-t border-border">
+        {!collapsed && (
+          <div className="flex items-center gap-3 mb-3 px-2">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-sm font-medium text-primary">
+                {user?.username?.charAt(0).toUpperCase() || 'A'}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate capitalize">
+                {user?.username || 'Admin'}
+              </p>
+            </div>
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          size={collapsed ? 'icon' : 'default'}
+          onClick={handleLogout}
+          className={`w-full text-danger hover:text-danger hover:bg-danger/10 ${collapsed ? '' : 'justify-start'}`}
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && <span className="ml-2">Logout</span>}
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }

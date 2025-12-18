@@ -1,115 +1,102 @@
 import { useState } from 'react';
-import { Save, Building2 } from 'lucide-react';
-import { companySettings } from '@/data/mockData';
+import { Save, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const [settings, setSettings] = useState({
-    companyName: companySettings.companyName,
-    ownerName: companySettings.ownerName,
-    phone: companySettings.phone,
-    email: companySettings.email,
-    address: companySettings.address,
+    username: user?.username || 'arnold',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
   });
 
   const handleSave = () => {
+    if (settings.newPassword && settings.newPassword !== settings.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (settings.newPassword && !settings.currentPassword) {
+      toast.error('Please enter current password');
+      return;
+    }
     toast.success('Settings saved successfully!');
+    setSettings({ ...settings, currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Manage company information</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground">Update login credentials</p>
       </div>
 
-      {/* Company Settings */}
-      <Card className="shadow-card max-w-2xl">
-        <CardHeader className="border-b border-border">
+      {/* Login Settings */}
+      <Card className="shadow-card">
+        <CardHeader className="border-b border-border py-3 px-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Company Information</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Update your company details
-              </p>
+              <CardTitle className="text-base">Login Credentials</CardTitle>
+              <p className="text-xs text-muted-foreground">Update username & password</p>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="grid gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Company Name
-              </label>
-              <Input
-                value={settings.companyName}
-                onChange={(e) =>
-                  setSettings({ ...settings, companyName: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Owner Name
-              </label>
-              <Input
-                value={settings.ownerName}
-                onChange={(e) =>
-                  setSettings({ ...settings, ownerName: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Phone Number
-                </label>
-                <Input
-                  value={settings.phone}
-                  onChange={(e) =>
-                    setSettings({ ...settings, phone: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Email Address
-                </label>
-                <Input
-                  type="email"
-                  value={settings.email}
-                  onChange={(e) =>
-                    setSettings({ ...settings, email: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Address
-              </label>
-              <Input
-                value={settings.address}
-                onChange={(e) =>
-                  setSettings({ ...settings, address: e.target.value })
-                }
-              />
-            </div>
+        <CardContent className="p-4 space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Username</label>
+            <Input
+              value={settings.username}
+              onChange={(e) => setSettings({ ...settings, username: e.target.value })}
+              placeholder="Enter username"
+            />
           </div>
 
           <div className="pt-4 border-t border-border">
-            <Button variant="hero" onClick={handleSave}>
+            <p className="text-sm font-medium text-foreground mb-4">Change Password</p>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Current Password</label>
+                <Input
+                  type="password"
+                  value={settings.currentPassword}
+                  onChange={(e) => setSettings({ ...settings, currentPassword: e.target.value })}
+                  placeholder="Enter current password"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">New Password</label>
+                <Input
+                  type="password"
+                  value={settings.newPassword}
+                  onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })}
+                  placeholder="Enter new password"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Confirm Password</label>
+                <Input
+                  type="password"
+                  value={settings.confirmPassword}
+                  onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
+                  placeholder="Confirm new password"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <Button onClick={handleSave} className="w-full sm:w-auto">
               <Save className="w-4 h-4 mr-2" />
               Save Changes
             </Button>

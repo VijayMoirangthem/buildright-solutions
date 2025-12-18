@@ -13,7 +13,6 @@ import ClientDetailPage from "./pages/admin/ClientDetailPage";
 import LaboursPage from "./pages/admin/LaboursPage";
 import LabourDetailPage from "./pages/admin/LabourDetailPage";
 import ResourcesPage from "./pages/admin/ResourcesPage";
-import ReportsPage from "./pages/admin/ReportsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -39,7 +38,6 @@ const App = () => (
               <Route path="labours" element={<LaboursPage />} />
               <Route path="labours/:id" element={<LabourDetailPage />} />
               <Route path="resources" element={<ResourcesPage />} />
-              <Route path="reports" element={<ReportsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
             
