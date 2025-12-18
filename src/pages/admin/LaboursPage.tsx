@@ -1,22 +1,19 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Eye, Plus, Filter } from 'lucide-react';
-import { labours } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
+import { Search, Plus, Download, ChevronRight } from 'lucide-react';
+import { labours as initialLabours, Labour } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { AddLabourModal } from '@/components/admin/AddLabourModal';
+import { toast } from 'sonner';
 
 export default function LaboursPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [labours, setLabours] = useState(initialLabours);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filteredLabours = labours.filter(
     (labour) =>
@@ -24,100 +21,92 @@ export default function LaboursPage() {
       labour.phone.includes(searchTerm)
   );
 
+  const handleAddLabour = (data: { name: string; phone: string; address: string; notes: string }) => {
+    const newLabour: Labour = {
+      id: String(labours.length + 1),
+      ...data,
+      dateJoined: new Date().toISOString().split('T')[0],
+      status: 'Active',
+      attendance: [],
+      financialRecords: [],
+    };
+    setLabours([newLabour, ...labours]);
+  };
+
+  const handleDownload = () => {
+    toast.success('Labours data exported!');
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Labours</h1>
-          <p className="text-muted-foreground">Manage your workforce</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Labours</h1>
+          <p className="text-sm text-muted-foreground hidden sm:block">Manage your workforce</p>
         </div>
-        <Button variant="default">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Labour
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">
+            <Download className="w-4 h-4" />
+          </Button>
+          <Button onClick={() => setIsAddModalOpen(true)} size="sm" className="h-9">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Add Labour</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name or phone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Labours List */}
       <Card className="shadow-card">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or phone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
+        <CardHeader className="border-b border-border py-3 px-4">
+          <CardTitle className="text-base">All Labours ({filteredLabours.length})</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {filteredLabours.length > 0 ? (
+              filteredLabours.map((labour) => (
+                <div
+                  key={labour.id}
+                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer active:bg-muted"
+                  onClick={() => navigate(`/admin/labours/${labour.id}`)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground truncate">{labour.name}</p>
+                      <Badge variant={labour.status === 'Active' ? 'default' : 'secondary'} className="text-xs">
+                        {labour.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{labour.phone}</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">
+                No labours found
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Labours Table */}
-      <Card className="shadow-card">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-lg">
-            All Labours ({filteredLabours.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="hidden md:table-cell">Date Joined</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLabours.length > 0 ? (
-                  filteredLabours.map((labour) => (
-                    <TableRow key={labour.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-medium text-foreground">
-                        {labour.name}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {labour.phone}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {new Date(labour.dateJoined).toLocaleDateString('en-IN')}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={labour.status === 'Active' ? 'default' : 'secondary'}>
-                          {labour.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link to={`/admin/labours/${labour.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      No labours found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      <AddLabourModal
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        onAdd={handleAddLabour}
+      />
     </div>
   );
 }

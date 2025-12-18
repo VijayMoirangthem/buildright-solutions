@@ -1,21 +1,80 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee } from 'lucide-react';
 import { labours } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+
+interface DailyRecord {
+  id: string;
+  date: string;
+  attendance: 'Present' | 'Absent' | '';
+  amountPaid: number;
+  notes: string;
+}
 
 export default function LabourDetailPage() {
   const { id } = useParams();
   const labour = labours.find((l) => l.id === id);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [records, setRecords] = useState<DailyRecord[]>(() => {
+    if (!labour) return [];
+    // Combine attendance and financial records into daily records
+    const dailyMap = new Map<string, DailyRecord>();
+    
+    labour.attendance.forEach(a => {
+      dailyMap.set(a.date, {
+        id: a.id,
+        date: a.date,
+        attendance: a.status,
+        amountPaid: 0,
+        notes: a.notes,
+      });
+    });
+    
+    labour.financialRecords.forEach(f => {
+      const existing = dailyMap.get(f.date);
+      if (existing) {
+        existing.amountPaid = f.paid;
+        existing.notes = f.notes || existing.notes;
+      } else {
+        dailyMap.set(f.date, {
+          id: f.id,
+          date: f.date,
+          attendance: '',
+          amountPaid: f.paid,
+          notes: f.notes,
+        });
+      }
+    });
+    
+    return Array.from(dailyMap.values()).sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  });
+
+  const [newRecord, setNewRecord] = useState({
+    attendance: '' as 'Present' | 'Absent' | '',
+    amountPaid: '',
+    notes: '',
+  });
 
   if (!labour) {
     return (
@@ -31,181 +90,228 @@ export default function LabourDetailPage() {
     );
   }
 
-  const totalAdvance = labour.financialRecords.reduce((sum, r) => sum + r.advance, 0);
-  const totalPaid = labour.financialRecords.reduce((sum, r) => sum + r.paid, 0);
-  const totalDue = labour.financialRecords.reduce((sum, r) => sum + r.due, 0);
+  const totalPaid = records.reduce((sum, r) => sum + r.amountPaid, 0);
+  const totalPresent = records.filter(r => r.attendance === 'Present').length;
+  const totalAbsent = records.filter(r => r.attendance === 'Absent').length;
+
+  const handleAddRecord = () => {
+    if (!newRecord.attendance && !newRecord.amountPaid) {
+      toast.error('Please enter attendance or payment');
+      return;
+    }
+    
+    const record: DailyRecord = {
+      id: String(Date.now()),
+      date: selectedDate,
+      attendance: newRecord.attendance,
+      amountPaid: Number(newRecord.amountPaid) || 0,
+      notes: newRecord.notes,
+    };
+    
+    // Check if record for this date exists
+    const existingIndex = records.findIndex(r => r.date === selectedDate);
+    if (existingIndex >= 0) {
+      const updated = [...records];
+      updated[existingIndex] = record;
+      setRecords(updated);
+    } else {
+      setRecords([record, ...records].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      ));
+    }
+    
+    setNewRecord({ attendance: '', amountPaid: '', notes: '' });
+    setIsAddModalOpen(false);
+    toast.success('Record added successfully!');
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Back Button */}
       <Link
         to="/admin/labours"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Labours
+        Back
       </Link>
 
       {/* Labour Info Card */}
       <Card className="shadow-card">
-        <CardHeader className="border-b border-border">
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">{labour.name}</h2>
+              <Badge variant={labour.status === 'Active' ? 'default' : 'secondary'} className="mt-1">
+                {labour.status}
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Phone className="w-4 h-4 text-primary" />
+              <span>{labour.phone}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span>{labour.address}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="w-4 h-4 text-primary" />
+              <span>Joined: {new Date(labour.dateJoined).toLocaleDateString('en-IN')}</span>
+            </div>
+            {labour.notes && (
+              <div className="flex items-start gap-2 text-muted-foreground">
+                <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <span>{labour.notes}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-success">{totalPresent}</p>
+            <p className="text-xs text-muted-foreground">Present</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-danger">{totalAbsent}</p>
+            <p className="text-xs text-muted-foreground">Absent</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-primary">₹{totalPaid.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-muted-foreground">Total Paid</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Daily Records */}
+      <Card className="shadow-card">
+        <CardHeader className="border-b border-border py-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">Labour Information</CardTitle>
-            <Badge variant={labour.status === 'Active' ? 'default' : 'secondary'}>
-              {labour.status}
-            </Badge>
+            <CardTitle className="text-base">Daily Records</CardTitle>
+            <Button size="sm" onClick={() => setIsAddModalOpen(true)} className="h-8">
+              <Plus className="w-4 h-4 mr-1" />
+              Add
+            </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">{labour.name}</h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span>{labour.phone}</span>
-                </div>
-                <div className="flex items-start gap-3 text-muted-foreground">
-                  <MapPin className="w-4 h-4 text-primary shrink-0 mt-1" />
-                  <span>{labour.address}</span>
-                </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span>Joined: {new Date(labour.dateJoined).toLocaleDateString('en-IN')}</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <FileText className="w-4 h-4 text-primary shrink-0 mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Notes</p>
-                    <p className="text-foreground">{labour.notes || 'No notes'}</p>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {records.length > 0 ? (
+              records.map((record) => (
+                <div key={record.id} className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-foreground">
+                      {new Date(record.date).toLocaleDateString('en-IN', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </p>
+                    {record.attendance && (
+                      <div className="flex items-center gap-1">
+                        {record.attendance === 'Present' ? (
+                          <CheckCircle className="w-4 h-4 text-success" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-danger" />
+                        )}
+                        <span className={`text-sm ${record.attendance === 'Present' ? 'text-success' : 'text-danger'}`}>
+                          {record.attendance}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {record.amountPaid > 0 && (
+                      <div className="flex items-center gap-1 text-sm">
+                        <IndianRupee className="w-3 h-3 text-primary" />
+                        <span className="text-primary font-medium">
+                          {record.amountPaid.toLocaleString('en-IN')} paid
+                        </span>
+                      </div>
+                    )}
+                    {record.notes && (
+                      <p className="text-xs text-muted-foreground">{record.notes}</p>
+                    )}
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">
+                No records yet
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 bg-warning/10 rounded-lg">
-                <p className="text-sm text-muted-foreground">Total Advance</p>
-                <p className="text-xl font-bold text-warning">
-                  ₹{totalAdvance.toLocaleString('en-IN')}
-                </p>
-              </div>
-              <div className="p-4 bg-success/10 rounded-lg">
-                <p className="text-sm text-muted-foreground">Total Paid</p>
-                <p className="text-xl font-bold text-success">
-                  ₹{totalPaid.toLocaleString('en-IN')}
-                </p>
-              </div>
-              <div className="p-4 bg-danger/10 rounded-lg">
-                <p className="text-sm text-muted-foreground">Total Due</p>
-                <p className="text-xl font-bold text-danger">
-                  ₹{totalDue.toLocaleString('en-IN')}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Attendance Records */}
-      <Card className="shadow-card">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-lg">Attendance Records</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {labour.attendance.length > 0 ? (
-                  labour.attendance.map((record) => (
-                    <TableRow key={record.id} className="hover:bg-muted/50">
-                      <TableCell className="text-muted-foreground">
-                        {new Date(record.date).toLocaleDateString('en-IN')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {record.status === 'Present' ? (
-                            <CheckCircle className="w-4 h-4 text-success" />
-                          ) : (
-                            <XCircle className="w-4 h-4 text-danger" />
-                          )}
-                          <span className={record.status === 'Present' ? 'text-success' : 'text-danger'}>
-                            {record.status}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {record.notes || '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                      No attendance records found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+      {/* Add Record Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Daily Record</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date</label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Attendance</label>
+              <Select
+                value={newRecord.attendance}
+                onValueChange={(value) => setNewRecord({ ...newRecord, attendance: value as 'Present' | 'Absent' })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select attendance" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Present">Present</SelectItem>
+                  <SelectItem value="Absent">Absent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Amount Paid (₹)</label>
+              <Input
+                type="number"
+                value={newRecord.amountPaid}
+                onChange={(e) => setNewRecord({ ...newRecord, amountPaid: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notes</label>
+              <Input
+                value={newRecord.notes}
+                onChange={(e) => setNewRecord({ ...newRecord, notes: e.target.value })}
+                placeholder="Optional notes"
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button onClick={handleAddRecord} className="flex-1">
+                Save
+              </Button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Financial Records */}
-      <Card className="shadow-card">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-lg">Financial Records</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Date</TableHead>
-                  <TableHead>Advance</TableHead>
-                  <TableHead>Paid</TableHead>
-                  <TableHead>Due</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {labour.financialRecords.length > 0 ? (
-                  labour.financialRecords.map((record) => (
-                    <TableRow key={record.id} className="hover:bg-muted/50">
-                      <TableCell className="text-muted-foreground">
-                        {new Date(record.date).toLocaleDateString('en-IN')}
-                      </TableCell>
-                      <TableCell className="text-warning">
-                        ₹{record.advance.toLocaleString('en-IN')}
-                      </TableCell>
-                      <TableCell className="text-success">
-                        ₹{record.paid.toLocaleString('en-IN')}
-                      </TableCell>
-                      <TableCell className="text-danger">
-                        ₹{record.due.toLocaleString('en-IN')}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{record.notes}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      No financial records found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
