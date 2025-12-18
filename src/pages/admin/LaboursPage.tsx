@@ -1,19 +1,33 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Download, ChevronRight } from 'lucide-react';
-import { labours as initialLabours, Labour } from '@/data/mockData';
+import { Search, Plus, Download, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AddLabourModal } from '@/components/admin/AddLabourModal';
+import { EditLabourModal } from '@/components/admin/EditLabourModal';
+import { exportLabours } from '@/lib/exportUtils';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function LaboursPage() {
   const navigate = useNavigate();
+  const { labours, addLabour, updateLabour, deleteLabour } = useData();
   const [searchTerm, setSearchTerm] = useState('');
-  const [labours, setLabours] = useState(initialLabours);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingLabour, setEditingLabour] = useState<typeof labours[0] | null>(null);
+  const [deletingLabourId, setDeletingLabourId] = useState<string | null>(null);
 
   const filteredLabours = labours.filter(
     (labour) =>
@@ -21,20 +35,30 @@ export default function LaboursPage() {
       labour.phone.includes(searchTerm)
   );
 
-  const handleAddLabour = (data: { name: string; phone: string; address: string; notes: string }) => {
-    const newLabour: Labour = {
-      id: String(labours.length + 1),
-      ...data,
-      dateJoined: new Date().toISOString().split('T')[0],
-      status: 'Active',
-      attendance: [],
-      financialRecords: [],
-    };
-    setLabours([newLabour, ...labours]);
+  const handleAddLabour = (data: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => {
+    addLabour(data);
+    toast.success('Labour added successfully!');
+  };
+
+  const handleUpdateLabour = (data: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => {
+    if (editingLabour) {
+      updateLabour(editingLabour.id, data);
+      setEditingLabour(null);
+      toast.success('Labour updated successfully!');
+    }
+  };
+
+  const handleDeleteLabour = () => {
+    if (deletingLabourId) {
+      deleteLabour(deletingLabourId);
+      setDeletingLabourId(null);
+      toast.success('Labour deleted successfully!');
+    }
   };
 
   const handleDownload = () => {
-    toast.success('Labours data exported!');
+    exportLabours(labours);
+    toast.success('Labours exported to CSV!');
   };
 
   return (
@@ -78,10 +102,12 @@ export default function LaboursPage() {
               filteredLabours.map((labour) => (
                 <div
                   key={labour.id}
-                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer active:bg-muted"
-                  onClick={() => navigate(`/admin/labours/${labour.id}`)}
+                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1 min-w-0">
+                  <div 
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={() => navigate(`/admin/labours/${labour.id}`)}
+                  >
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-foreground truncate">{labour.name}</p>
                       <Badge variant={labour.status === 'Active' ? 'default' : 'secondary'} className="text-xs">
@@ -90,7 +116,34 @@ export default function LaboursPage() {
                     </div>
                     <p className="text-sm text-muted-foreground">{labour.phone}</p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingLabour(labour);
+                      }}
+                    >
+                      <Pencil className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingLabourId(labour.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-danger" />
+                    </Button>
+                    <ChevronRight 
+                      className="w-5 h-5 text-muted-foreground shrink-0 cursor-pointer" 
+                      onClick={() => navigate(`/admin/labours/${labour.id}`)}
+                    />
+                  </div>
                 </div>
               ))
             ) : (
@@ -107,6 +160,32 @@ export default function LaboursPage() {
         onOpenChange={setIsAddModalOpen}
         onAdd={handleAddLabour}
       />
+
+      {editingLabour && (
+        <EditLabourModal
+          open={!!editingLabour}
+          onOpenChange={(open) => !open && setEditingLabour(null)}
+          labour={editingLabour}
+          onUpdate={handleUpdateLabour}
+        />
+      )}
+
+      <AlertDialog open={!!deletingLabourId} onOpenChange={(open) => !open && setDeletingLabourId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Labour</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this labour? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteLabour} className="bg-danger hover:bg-danger/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

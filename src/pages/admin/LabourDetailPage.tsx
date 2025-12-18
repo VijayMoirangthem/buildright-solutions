@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee } from 'lucide-react';
-import { labours } from '@/data/mockData';
+import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee, Pencil, Trash2 } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 interface DailyRecord {
@@ -31,12 +41,11 @@ interface DailyRecord {
 
 export default function LabourDetailPage() {
   const { id } = useParams();
+  const { labours, updateLabour } = useData();
   const labour = labours.find((l) => l.id === id);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
   const [records, setRecords] = useState<DailyRecord[]>(() => {
     if (!labour) return [];
-    // Combine attendance and financial records into daily records
     const dailyMap = new Map<string, DailyRecord>();
     
     labour.attendance.forEach(a => {
@@ -70,6 +79,10 @@ export default function LabourDetailPage() {
     );
   });
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<DailyRecord | null>(null);
+  const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [newRecord, setNewRecord] = useState({
     attendance: '' as 'Present' | 'Absent' | '',
     amountPaid: '',
@@ -108,21 +121,54 @@ export default function LabourDetailPage() {
       notes: newRecord.notes,
     };
     
-    // Check if record for this date exists
     const existingIndex = records.findIndex(r => r.date === selectedDate);
+    let updated: DailyRecord[];
     if (existingIndex >= 0) {
-      const updated = [...records];
+      updated = [...records];
       updated[existingIndex] = record;
-      setRecords(updated);
     } else {
-      setRecords([record, ...records].sort((a, b) => 
+      updated = [record, ...records].sort((a, b) => 
         new Date(b.date).getTime() - new Date(a.date).getTime()
-      ));
+      );
     }
     
+    setRecords(updated);
     setNewRecord({ attendance: '', amountPaid: '', notes: '' });
     setIsAddModalOpen(false);
     toast.success('Record added successfully!');
+  };
+
+  const handleUpdateRecord = () => {
+    if (!editingRecord) return;
+    
+    const updated = records.map(r => 
+      r.id === editingRecord.id 
+        ? { ...r, date: selectedDate, attendance: newRecord.attendance, amountPaid: Number(newRecord.amountPaid) || 0, notes: newRecord.notes }
+        : r
+    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    setRecords(updated);
+    setEditingRecord(null);
+    setNewRecord({ attendance: '', amountPaid: '', notes: '' });
+    toast.success('Record updated successfully!');
+  };
+
+  const handleDeleteRecord = () => {
+    if (!deletingRecordId) return;
+    const updated = records.filter(r => r.id !== deletingRecordId);
+    setRecords(updated);
+    setDeletingRecordId(null);
+    toast.success('Record deleted successfully!');
+  };
+
+  const openEditModal = (record: DailyRecord) => {
+    setSelectedDate(record.date);
+    setNewRecord({
+      attendance: record.attendance,
+      amountPaid: record.amountPaid ? String(record.amountPaid) : '',
+      notes: record.notes,
+    });
+    setEditingRecord(record);
   };
 
   return (
@@ -217,18 +263,26 @@ export default function LabourDetailPage() {
                         month: 'short',
                       })}
                     </p>
-                    {record.attendance && (
-                      <div className="flex items-center gap-1">
-                        {record.attendance === 'Present' ? (
-                          <CheckCircle className="w-4 h-4 text-success" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-danger" />
-                        )}
-                        <span className={`text-sm ${record.attendance === 'Present' ? 'text-success' : 'text-danger'}`}>
-                          {record.attendance}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {record.attendance && (
+                        <div className="flex items-center gap-1">
+                          {record.attendance === 'Present' ? (
+                            <CheckCircle className="w-4 h-4 text-success" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-danger" />
+                          )}
+                          <span className={`text-sm ${record.attendance === 'Present' ? 'text-success' : 'text-danger'}`}>
+                            {record.attendance}
+                          </span>
+                        </div>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(record)}>
+                        <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeletingRecordId(record.id)}>
+                        <Trash2 className="w-3.5 h-3.5 text-danger" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     {record.amountPaid > 0 && (
@@ -254,11 +308,18 @@ export default function LabourDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Add Record Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+      {/* Add/Edit Record Modal */}
+      <Dialog open={isAddModalOpen || !!editingRecord} onOpenChange={(open) => {
+        if (!open) {
+          setIsAddModalOpen(false);
+          setEditingRecord(null);
+          setSelectedDate(new Date().toISOString().split('T')[0]);
+          setNewRecord({ attendance: '', amountPaid: '', notes: '' });
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Daily Record</DialogTitle>
+            <DialogTitle>{editingRecord ? 'Edit Record' : 'Add Daily Record'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -302,16 +363,39 @@ export default function LabourDetailPage() {
               />
             </div>
             <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} className="flex-1">
+              <Button type="button" variant="outline" onClick={() => {
+                setIsAddModalOpen(false);
+                setEditingRecord(null);
+                setSelectedDate(new Date().toISOString().split('T')[0]);
+                setNewRecord({ attendance: '', amountPaid: '', notes: '' });
+              }} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={handleAddRecord} className="flex-1">
-                Save
+              <Button onClick={editingRecord ? handleUpdateRecord : handleAddRecord} className="flex-1">
+                {editingRecord ? 'Update' : 'Save'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingRecordId} onOpenChange={(open) => !open && setDeletingRecordId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this record? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteRecord} className="bg-danger hover:bg-danger/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

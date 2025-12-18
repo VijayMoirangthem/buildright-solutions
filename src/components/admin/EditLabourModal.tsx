@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,20 +17,40 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 
-interface AddLabourModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAdd: (labour: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => void;
+interface Labour {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  notes: string;
+  status: 'Active' | 'Inactive';
 }
 
-export function AddLabourModal({ open, onOpenChange, onAdd }: AddLabourModalProps) {
+interface EditLabourModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  labour: Labour;
+  onUpdate: (data: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => void;
+}
+
+export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLabourModalProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    notes: '',
-    status: 'Active' as 'Active' | 'Inactive',
+    name: labour.name,
+    phone: labour.phone,
+    address: labour.address,
+    notes: labour.notes,
+    status: labour.status,
   });
+
+  useEffect(() => {
+    setFormData({
+      name: labour.name,
+      phone: labour.phone,
+      address: labour.address,
+      notes: labour.notes,
+      status: labour.status,
+    });
+  }, [labour]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +58,14 @@ export function AddLabourModal({ open, onOpenChange, onAdd }: AddLabourModalProp
       toast.error('Name and phone are required');
       return;
     }
-    onAdd(formData);
-    setFormData({ name: '', phone: '', address: '', notes: '', status: 'Active' });
-    onOpenChange(false);
+    onUpdate(formData);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Labour</DialogTitle>
+          <DialogTitle>Edit Labour</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -94,7 +112,7 @@ export function AddLabourModal({ open, onOpenChange, onAdd }: AddLabourModalProp
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Skills, experience..."
+              placeholder="Any notes..."
               rows={3}
             />
           </div>
@@ -103,7 +121,7 @@ export function AddLabourModal({ open, onOpenChange, onAdd }: AddLabourModalProp
               Cancel
             </Button>
             <Button type="submit" className="flex-1">
-              Add Labour
+              Update Labour
             </Button>
           </div>
         </form>
