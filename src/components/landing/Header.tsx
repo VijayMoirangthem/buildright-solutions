@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 
 // Mock Button component for demonstration
-const Button = ({ children, variant = 'default', size = 'sm', className = '', ...props }: any) => {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'outline';
+  size?: 'sm' | 'md';
+}
+
+const Button = ({ children, variant = 'default', size = 'sm', className = '', ...props }: ButtonProps) => {
   const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors';
   const sizeStyles = size === 'sm' ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base';
   const variantStyles = variant === 'default' 

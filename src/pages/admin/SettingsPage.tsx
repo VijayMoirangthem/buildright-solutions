@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Save, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Save, Lock, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [settings, setSettings] = useState({
     username: user?.username || 'arnold',
@@ -31,9 +33,14 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       {/* Page Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Update login credentials</p>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
+          <p className="text-sm text-muted-foreground">Update login credentials</p>
+        </div>
       </div>
 
       {/* Login Settings */}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee, Pencil, Trash2, Download } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { exportToCSV } from '@/lib/exportUtils';
 
 interface DailyRecord {
   id: string;
@@ -37,6 +38,20 @@ interface DailyRecord {
   attendance: 'Present' | 'Absent' | '';
   amountPaid: number;
   notes: string;
+}
+
+interface LabourDailyRecordExportData {
+  [key: string]: unknown;
+  name: string;
+  phone: string;
+  address: string;
+  dateJoined: string;
+  labourNotes: string;
+  status: 'Active' | 'Inactive';
+  recordDate: string;
+  attendance: 'Present' | 'Absent' | 'N/A';
+  amountPaid: number | string;
+  recordNotes: string;
 }
 
 export default function LabourDetailPage() {
@@ -171,16 +186,83 @@ export default function LabourDetailPage() {
     setEditingRecord(record);
   };
 
+  const handleDownload = () => {
+    if (!labour) {
+      toast.error("Labour data not available for download.");
+      return;
+    }
+
+    const baseLabourData = {
+      name: labour.name,
+      phone: labour.phone,
+      address: labour.address || 'N/A',
+      dateJoined: new Date(labour.dateJoined).toLocaleDateString('en-IN'),
+      labourNotes: labour.notes || 'N/A',
+      status: labour.status,
+    };
+
+    let dataToExport: LabourDailyRecordExportData[] = [];
+    let columns: { key: keyof LabourDailyRecordExportData; header: string }[] = [
+      { key: 'name', header: 'Labour Name' },
+      { key: 'phone', header: 'Phone' },
+      { key: 'address', header: 'Address' },
+      { key: 'dateJoined', header: 'Date Joined' },
+      { key: 'labourNotes', header: 'Labour Notes' },
+      { key: 'status', header: 'Status' },
+    ];
+
+    if (records.length > 0) {
+      dataToExport = records.map(record => ({
+        ...baseLabourData,
+        recordDate: new Date(record.date).toLocaleDateString('en-IN'),
+        attendance: record.attendance || 'N/A',
+        amountPaid: record.amountPaid,
+        recordNotes: record.notes || 'N/A',
+      }));
+      columns = columns.concat([
+        { key: 'recordDate', header: 'Record Date' },
+        { key: 'attendance', header: 'Attendance' },
+        { key: 'amountPaid', header: 'Amount Paid (₹)' },
+        { key: 'recordNotes', header: 'Record Notes' },
+      ]);
+    } else {
+      dataToExport.push({
+        ...baseLabourData,
+        recordDate: 'N/A',
+        attendance: 'N/A',
+        amountPaid: 'N/A',
+        recordNotes: 'N/A',
+      });
+      columns = columns.concat([
+        { key: 'recordDate', header: 'Record Date' },
+        { key: 'attendance', header: 'Attendance' },
+        { key: 'amountPaid', header: 'Amount Paid (₹)' },
+        { key: 'recordNotes', header: 'Record Notes' },
+      ]);
+    }
+
+    exportToCSV(dataToExport, `labour_${labour.name.replace(/\s/g, '_')}_details_and_records`, columns);
+    toast.success('Labour data and daily records exported to CSV!');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Back Button */}
-      <Link
-        to="/admin/labours"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back
-      </Link>
+      {/* Page Header */}
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          to="/admin/labours"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">
+            <Download className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
       {/* Labour Info Card */}
       <Card className="shadow-card">

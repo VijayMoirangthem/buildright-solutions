@@ -1,7 +1,7 @@
-import { Building2, Layers, Hammer, Paintbrush, ClipboardCheck, Home } from 'lucide-react';
+import { Building2, Layers, Hammer, Paintbrush, ClipboardCheck, Home, Icon } from 'lucide-react';
 import { services } from '@/data/mockData';
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, typeof Icon> = {
   Building2,
   Layers,
   Hammer,

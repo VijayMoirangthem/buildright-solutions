@@ -34,7 +34,7 @@ const menuItems = [
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const { user, logout } = useAuth();
   const collapsed = state === 'collapsed';
 
@@ -82,6 +82,11 @@ export function AdminSidebar() {
                     >
                       <Link
                         to={item.path}
+                        onClick={() => {
+                          if (isMobile) {
+                            setOpenMobile(false);
+                          }
+                        }}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                           isActive
                             ? 'bg-primary/10 text-primary font-medium'

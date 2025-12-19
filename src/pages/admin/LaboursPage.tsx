@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Download, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Download, ChevronRight, Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,9 +65,14 @@ export default function LaboursPage() {
     <div className="space-y-4">
       {/* Page Header */}
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Labours</h1>
-          <p className="text-sm text-muted-foreground hidden sm:block">Manage your workforce</p>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Labours</h1>
+            <p className="text-sm text-muted-foreground hidden sm:block">Manage your workforce</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">

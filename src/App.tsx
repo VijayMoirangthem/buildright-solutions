@@ -17,6 +17,8 @@ import ResourcesPage from "./pages/admin/ResourcesPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import NotFound from "./pages/NotFound";
 
+import NotesPage from "./pages/admin/NotesPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -41,6 +43,7 @@ const App = () => (
                 <Route path="labours/:id" element={<LabourDetailPage />} />
                 <Route path="resources" element={<ResourcesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="notes" element={<NotesPage />} />
               </Route>
               
               {/* Catch-all */}

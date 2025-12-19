@@ -77,44 +77,6 @@ export function Contact() {
             </div>
           ))}
         </div>
-
-        {/* Map */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d538.7163014680963!2d93.93534367424604!3d24.72561500026707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!2schajing%20mamang%20leikai%2C%20imphal%20west!5e0!3m2!1sen!2sin!4v1766116099691!5m2!1sen!2sin"
-              className="absolute top-0 left-0 w-full h-full"
-              style={{ border: 0 }}
-              allowFullScreen={true}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Location Map"
-            ></iframe>
-          </div>
-        </div>
-
-        {/* Optional: Call to Action */}
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            Have questions? We're here to help you with your construction needs.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href={`tel:${companySettings.phone.replace(/\s/g, '')}`}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300 shadow-sm hover:shadow-md"
-            >
-              <Phone className="w-5 h-5" />
-              Call Now
-            </a>
-            <a
-              href={`mailto:${companySettings.email}`}
-              className="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300 shadow-sm hover:shadow-md border border-gray-200"
-            >
-              <Mail className="w-5 h-5" />
-              Send Email
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   );

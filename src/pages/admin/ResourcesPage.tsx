@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Plus, Download, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { AddResourceModal } from '@/components/admin/AddResourceModal';
 import { EditResourceModal } from '@/components/admin/EditResourceModal';
 import { exportResources } from '@/lib/exportUtils';
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function ResourcesPage() {
+  const navigate = useNavigate();
   const { resources, addResource, updateResource, deleteResource } = useData();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<typeof resources[0] | null>(null);
@@ -58,9 +60,14 @@ export default function ResourcesPage() {
     <div className="space-y-4">
       {/* Page Header */}
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Resources</h1>
-          <p className="text-sm text-muted-foreground hidden sm:block">Track inventory</p>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Resources</h1>
+            <p className="text-sm text-muted-foreground hidden sm:block">Track inventory</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">

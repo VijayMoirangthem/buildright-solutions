@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { exportToCSV } from '@/lib/exportUtils';
 import {
   Table,
   TableBody,
@@ -147,16 +148,95 @@ export default function ClientDetailPage() {
     setEditingRecord(record);
   };
 
+interface ClientFinancialExportData {
+  [key: string]: unknown; // Add index signature
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  dateAdded: string;
+  clientNotes: string;
+  recordDate: string;
+  amount: number | string;
+  type: 'Received' | 'Due' | 'N/A';
+  recordNotes: string;
+}
+
+  const handleDownload = () => {
+    if (!client) {
+      toast.error("Client data not available for download.");
+      return;
+    }
+
+    const baseClientData = {
+      name: client.name,
+      phone: client.phone,
+      email: client.email || 'N/A',
+      address: client.address || 'N/A',
+      dateAdded: new Date(client.dateAdded).toLocaleDateString('en-IN'),
+      clientNotes: client.notes || 'N/A',
+    };
+
+    let dataToExport: ClientFinancialExportData[] = [];
+    let columns: { key: keyof ClientFinancialExportData; header: string }[] = [
+      { key: 'name', header: 'Client Name' },
+      { key: 'phone', header: 'Phone' },
+      { key: 'email', header: 'Email' },
+      { key: 'address', header: 'Address' },
+      { key: 'dateAdded', header: 'Date Added' },
+      { key: 'clientNotes', header: 'Client Notes' },
+    ];
+
+    if (financialRecords.length > 0) {
+      dataToExport = financialRecords.map(record => ({
+        ...baseClientData,
+        recordDate: new Date(record.date).toLocaleDateString('en-IN'),
+        amount: record.amount,
+        type: record.type,
+        recordNotes: record.notes || 'N/A',
+      }));
+      columns = columns.concat([
+        { key: 'recordDate', header: 'Record Date' },
+        { key: 'amount', header: 'Amount (₹)' },
+        { key: 'type', header: 'Type' },
+        { key: 'recordNotes', header: 'Record Notes' },
+      ]);
+    } else {
+      dataToExport.push({
+        ...baseClientData,
+        recordDate: 'N/A',
+        amount: 'N/A',
+        type: 'N/A',
+        recordNotes: 'N/A',
+      });
+      columns = columns.concat([
+        { key: 'recordDate', header: 'Record Date' },
+        { key: 'amount', header: 'Amount (₹)' },
+        { key: 'type', header: 'Type' },
+        { key: 'recordNotes', header: 'Record Notes' },
+      ]);
+    }
+
+    exportToCSV(dataToExport, `client_${client.name.replace(/\s/g, '_')}_details_and_financials`, columns);
+    toast.success('Client data and financial records exported to CSV!');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Back Button */}
-      <Link
-        to="/admin/clients"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back
-      </Link>
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        {/* Back Button */}
+        <Link
+          to="/admin/clients"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+        <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">
+          <Download className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* Client Info Card */}
       <Card className="shadow-card">
