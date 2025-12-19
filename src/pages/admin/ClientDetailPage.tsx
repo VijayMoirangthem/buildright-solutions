@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { exportToCSV } from '@/lib/exportUtils';
+import { EditClientModal } from '@/components/admin/EditClientModal';
 import {
   Table,
   TableBody,
@@ -53,6 +54,15 @@ export default function ClientDetailPage() {
   const { id } = useParams();
   const { clients, updateClient } = useData();
   const client = clients.find((c) => c.id === id);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const handleUpdateClient = (data: { name: string; phone: string; email: string; address: string; notes: string }) => {
+    if (client) {
+      updateClient(client.id, data);
+      setIsEditModalOpen(false);
+      toast.success('Client updated successfully!');
+    }
+  };
   
   const [financialRecords, setFinancialRecords] = useState<FinancialRecord[]>(
     client?.financialRecords || []
@@ -240,23 +250,39 @@ interface ClientFinancialExportData {
 
       {/* Client Info Card */}
       <Card className="shadow-card">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border py-3 px-4">
+          <CardTitle className="text-xl font-bold text-foreground">{client.name}</CardTitle>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditModalOpen(true)}>
+            <Pencil className="w-4 h-4 text-muted-foreground" />
+          </Button>
+        </CardHeader>
         <CardContent className="p-4">
-          <h2 className="text-xl font-bold text-foreground mb-4">{client.name}</h2>
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Phone className="w-4 h-4 text-primary" />
-              <span>{client.phone}</span>
+              <a href={`tel:${client.phone}`} className="text-sm hover:underline">
+                {client.phone}
+              </a>
             </div>
             {client.email && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="w-4 h-4 text-primary" />
-                <span>{client.email}</span>
+                <a href={`mailto:${client.email}`} className="text-sm hover:underline">
+                  {client.email}
+                </a>
               </div>
             )}
             {client.address && (
               <div className="flex items-start gap-2 text-muted-foreground">
                 <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>{client.address}</span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {client.address}
+                </a>
               </div>
             )}
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -274,7 +300,7 @@ interface ClientFinancialExportData {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* <div className="grid grid-cols-2 gap-3">
         <Card className="shadow-card">
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-success">₹{totalReceived.toLocaleString('en-IN')}</p>
@@ -287,7 +313,7 @@ interface ClientFinancialExportData {
             <p className="text-xs text-muted-foreground">Due</p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Financial Records */}
       <Card className="shadow-card">
@@ -409,6 +435,15 @@ interface ClientFinancialExportData {
       </Dialog>
 
       {/* Delete Confirmation */}
+      {client && (
+        <EditClientModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          client={client}
+          onUpdate={handleUpdateClient}
+        />
+      )}
+
       <AlertDialog open={!!deletingRecordId} onOpenChange={(open) => !open && setDeletingRecordId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -40,7 +40,7 @@ export function Hero() {
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl">
-              With over two decades of experience, Ningthoujam Constructions delivers
+              With over two decades of experience, Ningthou Constructions delivers
               exceptional quality in residential and commercial construction across
               Manipur. Your vision, our expertise.
             </p>

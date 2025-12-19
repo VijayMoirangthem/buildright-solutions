@@ -34,7 +34,7 @@ export function Footer() {
                 <span className="text-primary-foreground font-bold text-xl">NC</span>
               </div>
               <span className="font-semibold text-lg">
-                Ningthoujam Constructions
+                Ningthou Constructions
               </span>
             </div>
             <p className="text-background/70 text-sm leading-relaxed">
@@ -130,7 +130,7 @@ export function Footer() {
       <div className="border-t border-background/10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-background/60">
-            <p>© {currentYear} Ningthoujam Constructions. All rights reserved.</p>
+            <p>© {currentYear} Ningthou Constructions. All rights reserved.</p>
             <p>
               Designed with ❤️ in Manipur
             </p>

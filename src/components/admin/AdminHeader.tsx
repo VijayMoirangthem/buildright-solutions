@@ -9,6 +9,7 @@ export function AdminHeader() {
         <SidebarTrigger className="text-muted-foreground hover:text-foreground md:hidden">
           <Menu className="w-5 h-5" />
         </SidebarTrigger>
+        <span className="font-semibold text-lg text-gray-900 dark:text-gray-100">Ningthou Constructions</span>
       </div>
 
       <div className="flex items-center">

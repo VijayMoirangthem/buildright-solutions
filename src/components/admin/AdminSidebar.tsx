@@ -54,8 +54,7 @@ export function AdminSidebar() {
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <h2 className="font-semibold text-foreground text-sm truncate">Ningthoujam</h2>
-              <p className="text-xs text-muted-foreground truncate">Constructions</p>
+              <h2 className="font-semibold text-foreground text-sm truncate">Ningthoujam Constructions</h2>
             </div>
           )}
         </Link>

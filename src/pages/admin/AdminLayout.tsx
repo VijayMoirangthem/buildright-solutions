@@ -5,7 +5,11 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
 export default function AdminLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a more sophisticated loading spinner
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

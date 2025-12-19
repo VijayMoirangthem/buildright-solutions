@@ -58,6 +58,10 @@ export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLa
       toast.error('Name and phone are required');
       return;
     }
+    if (!/^[0-9]{10}$/.test(formData.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
     onUpdate(formData);
   };
 
@@ -81,7 +85,7 @@ export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLa
             <Input
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+91 98765 43210"
+              placeholder="9876543210"
             />
           </div>
           <div className="space-y-2">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -31,27 +32,34 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportToCSV } from '@/lib/exportUtils';
+import { EditLabourModal } from '@/components/admin/EditLabourModal';
 
 interface DailyRecord {
   id: string;
   date: string;
-  attendance: 'Present' | 'Absent' | '';
+  attendance: 'Present' | 'Absent' | 'Overtime' | 'Half day' | '';
   amountPaid: number;
   notes: string;
 }
 
 interface LabourDailyRecordExportData {
   [key: string]: unknown;
-  name: string;
-  phone: string;
-  address: string;
-  dateJoined: string;
-  labourNotes: string;
-  status: 'Active' | 'Inactive';
-  recordDate: string;
-  attendance: 'Present' | 'Absent' | 'N/A';
-  amountPaid: number | string;
-  recordNotes: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  dateJoined?: string;
+  labourNotes?: string;
+  status?: 'Active' | 'Inactive';
+  totalFullDays?: number;
+  totalHalfDays?: number;
+  totalAbsent?: number;
+  totalOvertime?: number;
+  totalPaid?: number;
+  totalPaidThisMonth?: number;
+  recordDate?: string;
+  attendance?: 'Present' | 'Absent' | 'Overtime' | 'Half day' | 'N/A';
+  amountPaid?: number | string;
+  recordNotes?: string;
 }
 
 export default function LabourDetailPage() {
@@ -59,6 +67,16 @@ export default function LabourDetailPage() {
   const { labours, updateLabour } = useData();
   const labour = labours.find((l) => l.id === id);
   
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const handleUpdateLabour = (updatedData: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => {
+    if (labour) {
+      updateLabour(labour.id, updatedData);
+      toast.success('Labour details updated successfully!');
+      setIsEditModalOpen(false);
+    }
+  };
+
   const [records, setRecords] = useState<DailyRecord[]>(() => {
     if (!labour) return [];
     const dailyMap = new Map<string, DailyRecord>();
@@ -99,7 +117,7 @@ export default function LabourDetailPage() {
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [newRecord, setNewRecord] = useState({
-    attendance: '' as 'Present' | 'Absent' | '',
+    attendance: '' as 'Present' | 'Absent' | 'Overtime' | 'Half day' | '',
     amountPaid: '',
     notes: '',
   });
@@ -119,8 +137,20 @@ export default function LabourDetailPage() {
   }
 
   const totalPaid = records.reduce((sum, r) => sum + r.amountPaid, 0);
-  const totalPresent = records.filter(r => r.attendance === 'Present').length;
+  const totalFullDays = records.filter(r => r.attendance === 'Present').length;
+  const totalHalfDays = records.filter(r => r.attendance === 'Half day').length;
+  const totalOvertime = records.filter(r => r.attendance === 'Overtime').length;
   const totalAbsent = records.filter(r => r.attendance === 'Absent').length;
+
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  const totalPaidThisMonth = records
+    .filter(record => {
+      const recordDate = new Date(record.date);
+      return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, record) => sum + record.amountPaid, 0);
 
   const handleAddRecord = () => {
     if (!newRecord.attendance && !newRecord.amountPaid) {
@@ -274,17 +304,29 @@ export default function LabourDetailPage() {
                 {labour.status}
               </Badge>
             </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditModalOpen(true)}>
+              <Pencil className="w-4 h-4 text-muted-foreground" />
+            </Button>
           </div>
           
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="w-4 h-4 text-primary" />
-              <span>{labour.phone}</span>
-            </div>
+                  <Phone className="w-4 h-4 text-primary" />
+                  <a href={`tel:${labour.phone}`} className="text-sm hover:underline">
+                    {labour.phone}
+                  </a>
+                </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span>{labour.address}</span>
-            </div>
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(labour.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm hover:underline"
+                  >
+                    {labour.address}
+                  </a>
+                </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="w-4 h-4 text-primary" />
               <span>Joined: {new Date(labour.dateJoined).toLocaleDateString('en-IN')}</span>
@@ -300,25 +342,45 @@ export default function LabourDetailPage() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="shadow-card">
-          <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-success">{totalPresent}</p>
-            <p className="text-xs text-muted-foreground">Present</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-danger">{totalAbsent}</p>
-            <p className="text-xs text-muted-foreground">Absent</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-primary">₹{totalPaid.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-muted-foreground">Total Paid</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-4 gap-3">
+          <Card className="shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-lg font-bold text-success">{totalFullDays}</p>
+              <p className="text-xs text-muted-foreground">Full Days</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-lg font-bold text-warning">{totalHalfDays}</p>
+              <p className="text-xs text-muted-foreground">Half Days</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-lg font-bold text-danger">{totalAbsent}</p>
+              <p className="text-xs text-muted-foreground">Absent</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-lg font-bold text-info">{totalOvertime}</p>
+              <p className="text-xs text-muted-foreground">Overtime</p>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <Card className="shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-lg font-bold text-primary">₹{totalPaid.toLocaleString('en-IN')}</p>
+              <p className="text-xs text-muted-foreground">Total Paid</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardContent className="p-3 text-center">
+              <p className="text-lg font-bold text-primary">₹{totalPaidThisMonth.toLocaleString('en-IN')}</p>
+              <p className="text-xs text-muted-foreground">Paid This Month</p>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Daily Records */}
@@ -416,19 +478,18 @@ export default function LabourDetailPage() {
               <label className="text-sm font-medium">Attendance</label>
               <Select
                 value={newRecord.attendance}
-                onValueChange={(value) => setNewRecord({ ...newRecord, attendance: value as 'Present' | 'Absent' })}
+                onValueChange={(value) => setNewRecord({ ...newRecord, attendance: value as 'Present' | 'Absent' | 'Overtime' | 'Half day' | '' })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select attendance" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Present">Present</SelectItem>
-                  <SelectItem value="Absent">Absent</SelectItem>
-                </SelectContent>
+                <SelectItem value="Present">Present</SelectItem>
+</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Amount Paid (₹)</label>
+              <label className="text-sm font-medium">Amount Paid</label>
               <Input
                 type="number"
                 value={newRecord.amountPaid}
@@ -438,10 +499,11 @@ export default function LabourDetailPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Notes</label>
-              <Input
+              <Textarea
                 value={newRecord.notes}
                 onChange={(e) => setNewRecord({ ...newRecord, notes: e.target.value })}
-                placeholder="Optional notes"
+                placeholder="Add any notes for this record..."
+                rows={3}
               />
             </div>
             <div className="flex gap-3 pt-4">
@@ -453,13 +515,22 @@ export default function LabourDetailPage() {
               }} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={editingRecord ? handleUpdateRecord : handleAddRecord} className="flex-1">
-                {editingRecord ? 'Update' : 'Save'}
+              <Button type="submit" onClick={editingRecord ? handleUpdateRecord : handleAddRecord} className="flex-1">
+                {editingRecord ? 'Update Record' : 'Add Record'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {labour && (
+        <EditLabourModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          labour={labour}
+          onUpdate={handleUpdateLabour}
+        />
+      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deletingRecordId} onOpenChange={(open) => !open && setDeletingRecordId(null)}>

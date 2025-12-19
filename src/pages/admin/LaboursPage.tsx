@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Download, ChevronRight, Pencil, Trash2, ArrowLeft } from 'lucide-react';
+import { Search, Plus, Download, ChevronRight, Pencil, Trash2, ArrowLeft, Filter } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,13 @@ import { AddLabourModal } from '@/components/admin/AddLabourModal';
 import { EditLabourModal } from '@/components/admin/EditLabourModal';
 import { exportLabours } from '@/lib/exportUtils';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,12 +35,14 @@ export default function LaboursPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingLabour, setEditingLabour] = useState<typeof labours[0] | null>(null);
   const [deletingLabourId, setDeletingLabourId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'All' | 'Active' | 'Inactive'>('All');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const filteredLabours = labours.filter(
-    (labour) =>
-      labour.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      labour.phone.includes(searchTerm)
-  );
+  const filteredLabours = labours.filter((labour) => {
+    const matchesSearchTerm = labour.name.toLowerCase().includes(searchTerm.toLowerCase()) || labour.phone.includes(searchTerm);
+    const matchesFilterStatus = filterStatus === 'All' || labour.status === filterStatus;
+    return matchesSearchTerm && matchesFilterStatus;
+  });
 
   const handleAddLabour = (data: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => {
     addLabour(data);
@@ -98,8 +107,18 @@ export default function LaboursPage() {
 
       {/* Labours List */}
       <Card className="shadow-card">
-        <CardHeader className="border-b border-border py-3 px-4">
+        <CardHeader className="border-b border-border py-3 px-4 flex flex-row items-center justify-between">
           <CardTitle className="text-base">All Labours ({filteredLabours.length})</CardTitle>
+          <Select value={filterStatus} onValueChange={(value: 'All' | 'Active' | 'Inactive') => setFilterStatus(value)} open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Labours</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border">

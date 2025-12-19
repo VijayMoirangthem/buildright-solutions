@@ -63,7 +63,7 @@ export interface Labour {
 export interface AttendanceRecord {
   id: string;
   date: string;
-  status: 'Present' | 'Absent';
+  status: 'Present' | 'Absent' | 'Overtime' | 'Half day';
   notes: string;
 }
 
@@ -449,10 +449,10 @@ export const dashboardStats = {
 };
 
 export const companySettings = {
-  companyName: 'Ningthoujam Constructions',
+  companyName: 'Ningthou Constructions',
   ownerName: 'Arnold Ningthoujam',
   phone: '+91 84139 39905',
-  email: 'contact@ningthoujamconstructions.com',
+  email: 'contact@ningthouconstructions.com',
   address: 'Chajing Mamang Leikai (Near Triveni School), Imphal West, Manipur - 795130',
 };
 

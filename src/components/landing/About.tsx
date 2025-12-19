@@ -23,7 +23,7 @@ export function About() {
             </h2>
 
             <p className="text-muted-foreground leading-relaxed">
-              Ningthoujam Constructions has been a cornerstone of quality construction
+              Ningthou Constructions has been a cornerstone of quality construction
               in Manipur for over two decades. Founded with a vision to transform the
               construction landscape in the region, we have successfully delivered
               residential, commercial, and industrial projects that stand as testaments
