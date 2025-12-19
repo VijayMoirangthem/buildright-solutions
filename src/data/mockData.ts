@@ -1,5 +1,22 @@
 // Demo data for the construction company app
 
+export interface Project {
+  id: string;
+  name: string;
+  location: string;
+  description: string;
+  status: 'Planning' | 'Ongoing' | 'Completed' | 'On Hold';
+  progress: number;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  clientIds: string[];
+  labourIds: string[];
+  resourceIds: string[];
+  notes: string;
+  image: string;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -8,6 +25,7 @@ export interface Client {
   address: string;
   dateAdded: string;
   notes: string;
+  projectId?: string;
   financialRecords: FinancialRecord[];
   resourceUsage: ResourceUsage[];
 }
@@ -37,6 +55,7 @@ export interface Labour {
   dateJoined: string;
   status: 'Active' | 'Inactive';
   notes: string;
+  projectId?: string;
   attendance: AttendanceRecord[];
   financialRecords: LabourFinancialRecord[];
 }
@@ -67,14 +86,99 @@ export interface Resource {
   endDate: string;
   price: number;
   notes: string;
+  projectId?: string;
 }
 
 export interface ActivityLog {
   id: string;
   action: string;
   timestamp: string;
-  type: 'client' | 'labour' | 'resource' | 'payment';
+  type: 'client' | 'labour' | 'resource' | 'payment' | 'project';
 }
+
+// Projects data with linked entities
+export const projects: Project[] = [
+  {
+    id: '1',
+    name: 'Sharma Residence',
+    location: 'Sector 12, Imphal East',
+    description: 'Residential building project - 3 floors with modern amenities',
+    status: 'Ongoing',
+    progress: 65,
+    startDate: '2024-07-15',
+    endDate: '2025-01-30',
+    budget: 1500000,
+    clientIds: ['1'],
+    labourIds: ['1', '2', '5'],
+    resourceIds: ['1', '2', '4'],
+    notes: 'Premium residential construction with earthquake-resistant structure',
+    image: '/placeholder.svg',
+  },
+  {
+    id: '2',
+    name: 'Singh Commercial Complex',
+    location: 'Lamphel Road, Imphal West',
+    description: 'Commercial complex renovation with modern infrastructure',
+    status: 'Ongoing',
+    progress: 40,
+    startDate: '2024-08-01',
+    endDate: '2025-03-15',
+    budget: 2500000,
+    clientIds: ['2'],
+    labourIds: ['1', '3'],
+    resourceIds: ['3', '5'],
+    notes: 'Major renovation including electrical and plumbing overhaul',
+    image: '/placeholder.svg',
+  },
+  {
+    id: '3',
+    name: 'Meitei Family Home',
+    location: 'Uripok, Imphal',
+    description: 'New residential construction - 2 floors',
+    status: 'Completed',
+    progress: 100,
+    startDate: '2024-04-01',
+    endDate: '2024-09-30',
+    budget: 1200000,
+    clientIds: ['3'],
+    labourIds: ['2', '4'],
+    resourceIds: ['1', '3', '6'],
+    notes: 'Successfully completed ahead of schedule',
+    image: '/placeholder.svg',
+  },
+  {
+    id: '4',
+    name: 'Industrial Warehouse',
+    location: 'Keishamthong, Imphal',
+    description: 'Large warehouse construction for storage facility',
+    status: 'Ongoing',
+    progress: 80,
+    startDate: '2024-06-20',
+    endDate: '2024-12-15',
+    budget: 4500000,
+    clientIds: ['4'],
+    labourIds: ['1', '2', '3', '5'],
+    resourceIds: ['1', '2', '4', '5'],
+    notes: 'Industrial grade construction with heavy foundation',
+    image: '/placeholder.svg',
+  },
+  {
+    id: '5',
+    name: 'Laishram Home Extension',
+    location: 'Sagolband, Imphal',
+    description: 'Home extension and renovation project',
+    status: 'Planning',
+    progress: 10,
+    startDate: '2024-11-01',
+    endDate: '2025-02-28',
+    budget: 450000,
+    clientIds: ['5'],
+    labourIds: [],
+    resourceIds: [],
+    notes: 'Awaiting final design approval',
+    image: '/placeholder.svg',
+  },
+];
 
 export const clients: Client[] = [
   {
@@ -85,6 +189,7 @@ export const clients: Client[] = [
     address: 'Plot 45, Sector 12, Imphal East, Manipur',
     dateAdded: '2024-07-15',
     notes: 'Residential building project - 3 floors',
+    projectId: '1',
     financialRecords: [
       { id: 'f1', date: '2024-07-20', amount: 500000, type: 'Received', notes: 'Initial advance' },
       { id: 'f2', date: '2024-08-15', amount: 300000, type: 'Received', notes: 'Second installment' },
@@ -103,6 +208,7 @@ export const clients: Client[] = [
     address: '12-A, Lamphel Road, Imphal West, Manipur',
     dateAdded: '2024-08-01',
     notes: 'Commercial complex renovation',
+    projectId: '2',
     financialRecords: [
       { id: 'f4', date: '2024-08-05', amount: 800000, type: 'Received', notes: 'Project start payment' },
       { id: 'f5', date: '2024-09-01', amount: 450000, type: 'Due', notes: 'Phase 2 payment' },
@@ -119,6 +225,7 @@ export const clients: Client[] = [
     address: 'Uripok Bachaspati Leikai, Imphal, Manipur',
     dateAdded: '2024-09-10',
     notes: 'New residential construction',
+    projectId: '3',
     financialRecords: [
       { id: 'f6', date: '2024-09-15', amount: 1200000, type: 'Received', notes: 'Full advance' },
     ],
@@ -132,6 +239,7 @@ export const clients: Client[] = [
     address: 'Keishamthong, Imphal West, Manipur',
     dateAdded: '2024-06-20',
     notes: 'Warehouse construction project',
+    projectId: '4',
     financialRecords: [
       { id: 'f7', date: '2024-06-25', amount: 2000000, type: 'Received', notes: 'Initial payment' },
       { id: 'f8', date: '2024-07-30', amount: 1500000, type: 'Received', notes: 'Progress payment' },
@@ -150,6 +258,7 @@ export const clients: Client[] = [
     address: 'Sagolband, Imphal, Manipur',
     dateAdded: '2024-10-05',
     notes: 'Home extension and renovation',
+    projectId: '5',
     financialRecords: [
       { id: 'f10', date: '2024-10-10', amount: 350000, type: 'Received', notes: 'Booking amount' },
     ],
@@ -166,6 +275,7 @@ export const labours: Labour[] = [
     dateJoined: '2024-01-15',
     status: 'Active',
     notes: 'Expert mason - 15 years experience',
+    projectId: '1',
     attendance: [
       { id: 'a1', date: '2024-10-14', status: 'Present', notes: '' },
       { id: 'a2', date: '2024-10-15', status: 'Present', notes: '' },
@@ -185,6 +295,7 @@ export const labours: Labour[] = [
     dateJoined: '2024-03-20',
     status: 'Active',
     notes: 'Carpenter - specializes in roofing',
+    projectId: '1',
     attendance: [
       { id: 'a5', date: '2024-10-14', status: 'Present', notes: '' },
       { id: 'a6', date: '2024-10-15', status: 'Present', notes: '' },
@@ -202,6 +313,7 @@ export const labours: Labour[] = [
     dateJoined: '2024-05-10',
     status: 'Active',
     notes: 'General labor - hardworking',
+    projectId: '2',
     attendance: [
       { id: 'a8', date: '2024-10-14', status: 'Present', notes: '' },
       { id: 'a9', date: '2024-10-15', status: 'Absent', notes: 'Personal work' },
@@ -218,6 +330,7 @@ export const labours: Labour[] = [
     dateJoined: '2024-02-01',
     status: 'Inactive',
     notes: 'Electrician - currently on leave',
+    projectId: '3',
     attendance: [],
     financialRecords: [
       { id: 'lf5', date: '2024-09-01', advance: 4000, paid: 8000, due: 2000, notes: 'Advance pending' },
@@ -231,6 +344,7 @@ export const labours: Labour[] = [
     dateJoined: '2024-06-15',
     status: 'Active',
     notes: 'Plumber - skilled in modern fittings',
+    projectId: '4',
     attendance: [
       { id: 'a10', date: '2024-10-14', status: 'Present', notes: '' },
       { id: 'a11', date: '2024-10-15', status: 'Present', notes: '' },
@@ -254,6 +368,7 @@ export const resources: Resource[] = [
     endDate: '2024-12-31',
     price: 360000,
     notes: 'ACC Cement - 50kg bags',
+    projectId: '1',
   },
   {
     id: '2',
@@ -265,6 +380,7 @@ export const resources: Resource[] = [
     endDate: '2024-11-30',
     price: 1100000,
     notes: 'TMT bars - mixed sizes',
+    projectId: '1',
   },
   {
     id: '3',
@@ -276,6 +392,7 @@ export const resources: Resource[] = [
     endDate: '2024-12-31',
     price: 350000,
     notes: 'First class bricks',
+    projectId: '2',
   },
   {
     id: '4',
@@ -287,6 +404,7 @@ export const resources: Resource[] = [
     endDate: '2024-10-31',
     price: 90000,
     notes: 'River sand for construction',
+    projectId: '4',
   },
   {
     id: '5',
@@ -298,6 +416,7 @@ export const resources: Resource[] = [
     endDate: '2024-10-31',
     price: 75000,
     notes: '20mm aggregate',
+    projectId: '2',
   },
   {
     id: '6',
@@ -309,6 +428,7 @@ export const resources: Resource[] = [
     endDate: '2025-03-31',
     price: 250000,
     notes: 'Sal wood for doors and frames',
+    projectId: '3',
   },
 ];
 
@@ -318,6 +438,7 @@ export const activityLog: ActivityLog[] = [
   { id: '3', action: 'Attendance marked for 5 labours', timestamp: '2024-10-17 09:00', type: 'labour' },
   { id: '4', action: 'Cement stock updated - 100 bags used', timestamp: '2024-10-16 16:45', type: 'resource' },
   { id: '5', action: 'Labour advance paid to Ibomcha Singh - ₹5,000', timestamp: '2024-10-16 12:00', type: 'payment' },
+  { id: '6', action: 'Project Sharma Residence progress updated to 65%', timestamp: '2024-10-16 10:00', type: 'project' },
 ];
 
 export const dashboardStats = {
@@ -371,56 +492,5 @@ export const services = [
     title: 'Interior Finishing',
     description: 'Premium interior finishing including flooring, painting, and modern fixtures.',
     icon: 'Home',
-  },
-];
-
-export const projects = [
-  {
-    id: '1',
-    name: 'Sharma Residence',
-    location: 'Sector 12, Imphal East',
-    status: 'Ongoing',
-    progress: 65,
-    image: '/placeholder.svg',
-  },
-  {
-    id: '2',
-    name: 'Singh Commercial Complex',
-    location: 'Lamphel Road, Imphal West',
-    status: 'Ongoing',
-    progress: 40,
-    image: '/placeholder.svg',
-  },
-  {
-    id: '3',
-    name: 'Meitei Family Home',
-    location: 'Uripok, Imphal',
-    status: 'Completed',
-    progress: 100,
-    image: '/placeholder.svg',
-  },
-  {
-    id: '4',
-    name: 'Industrial Warehouse',
-    location: 'Keishamthong, Imphal',
-    status: 'Ongoing',
-    progress: 80,
-    image: '/placeholder.svg',
-  },
-  {
-    id: '5',
-    name: 'Government School Building',
-    location: 'Kakching, Manipur',
-    status: 'Completed',
-    progress: 100,
-    image: '/placeholder.svg',
-  },
-  {
-    id: '6',
-    name: 'Community Health Center',
-    location: 'Thoubal, Manipur',
-    status: 'Completed',
-    progress: 100,
-    image: '/placeholder.svg',
   },
 ];

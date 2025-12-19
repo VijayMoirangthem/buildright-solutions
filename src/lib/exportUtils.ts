@@ -40,6 +40,7 @@ export function exportClients(clients: Array<{
   address: string;
   dateAdded: string;
   notes: string;
+  projectId?: string;
 }>) {
   exportToCSV(clients, 'clients', [
     { key: 'name', header: 'Name' },
@@ -48,6 +49,7 @@ export function exportClients(clients: Array<{
     { key: 'address', header: 'Address' },
     { key: 'dateAdded', header: 'Date Added' },
     { key: 'notes', header: 'Notes' },
+    { key: 'projectId', header: 'Project ID' },
   ]);
 }
 
@@ -59,6 +61,7 @@ export function exportLabours(labours: Array<{
   dateJoined: string;
   status: string;
   notes: string;
+  projectId?: string;
 }>) {
   exportToCSV(labours, 'labours', [
     { key: 'name', header: 'Name' },
@@ -67,6 +70,7 @@ export function exportLabours(labours: Array<{
     { key: 'dateJoined', header: 'Date Joined' },
     { key: 'status', header: 'Status' },
     { key: 'notes', header: 'Notes' },
+    { key: 'projectId', header: 'Project ID' },
   ]);
 }
 
@@ -78,6 +82,7 @@ export function exportResources(resources: Array<{
   remaining: number;
   price: number;
   notes: string;
+  projectId?: string;
 }>) {
   exportToCSV(resources, 'resources', [
     { key: 'type', header: 'Type' },
@@ -85,6 +90,45 @@ export function exportResources(resources: Array<{
     { key: 'used', header: 'Used' },
     { key: 'remaining', header: 'Remaining' },
     { key: 'price', header: 'Price (₹)' },
+    { key: 'notes', header: 'Notes' },
+    { key: 'projectId', header: 'Project ID' },
+  ]);
+}
+
+// Export projects
+export function exportProjects(projects: Array<{
+  name: string;
+  location: string;
+  description: string;
+  status: string;
+  progress: number;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  notes: string;
+  clientIds: string[];
+  labourIds: string[];
+  resourceIds: string[];
+}>) {
+  const projectsWithCounts = projects.map(p => ({
+    ...p,
+    clientCount: p.clientIds.length,
+    labourCount: p.labourIds.length,
+    resourceCount: p.resourceIds.length,
+  }));
+
+  exportToCSV(projectsWithCounts, 'projects', [
+    { key: 'name', header: 'Name' },
+    { key: 'location', header: 'Location' },
+    { key: 'description', header: 'Description' },
+    { key: 'status', header: 'Status' },
+    { key: 'progress', header: 'Progress (%)' },
+    { key: 'startDate', header: 'Start Date' },
+    { key: 'endDate', header: 'End Date' },
+    { key: 'budget', header: 'Budget (₹)' },
+    { key: 'clientCount', header: 'Clients' },
+    { key: 'labourCount', header: 'Labours' },
+    { key: 'resourceCount', header: 'Resources' },
     { key: 'notes', header: 'Notes' },
   ]);
 }

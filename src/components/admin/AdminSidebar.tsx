@@ -7,6 +7,7 @@ import {
   Settings,
   Building2,
   LogOut,
+  FolderKanban,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -25,6 +26,7 @@ import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+  { icon: FolderKanban, label: 'Projects', path: '/admin/projects' },
   { icon: Users, label: 'Clients', path: '/admin/clients' },
   { icon: HardHat, label: 'Labours', path: '/admin/labours' },
   { icon: Package, label: 'Resources', path: '/admin/resources' },
@@ -52,12 +54,8 @@ export function AdminSidebar() {
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <h2 className="font-semibold text-foreground text-sm truncate">
-                Ningthoujam
-              </h2>
-              <p className="text-xs text-muted-foreground truncate">
-                Constructions
-              </p>
+              <h2 className="font-semibold text-foreground text-sm truncate">Ningthoujam</h2>
+              <p className="text-xs text-muted-foreground truncate">Constructions</p>
             </div>
           )}
         </Link>
@@ -68,29 +66,18 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive =
-                  item.path === '/admin'
-                    ? location.pathname === '/admin'
-                    : location.pathname.startsWith(item.path);
+                const isActive = item.path === '/admin'
+                  ? location.pathname === '/admin'
+                  : location.pathname.startsWith(item.path);
 
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={collapsed ? item.label : undefined}
-                    >
+                    <SidebarMenuButton asChild isActive={isActive} tooltip={collapsed ? item.label : undefined}>
                       <Link
                         to={item.path}
-                        onClick={() => {
-                          if (isMobile) {
-                            setOpenMobile(false);
-                          }
-                        }}
+                        onClick={() => isMobile && setOpenMobile(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                          isActive
-                            ? 'bg-primary/10 text-primary font-medium'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         }`}
                       >
                         <item.icon className="w-5 h-5 shrink-0" />
@@ -109,14 +96,10 @@ export function AdminSidebar() {
         {!collapsed && (
           <div className="flex items-center gap-3 mb-3 px-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">
-                {user?.username?.charAt(0).toUpperCase() || 'A'}
-              </span>
+              <span className="text-sm font-medium text-primary">{user?.username?.charAt(0).toUpperCase() || 'A'}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate capitalize">
-                {user?.username || 'Admin'}
-              </p>
+              <p className="text-sm font-medium text-foreground truncate capitalize">{user?.username || 'Admin'}</p>
             </div>
           </div>
         )}
