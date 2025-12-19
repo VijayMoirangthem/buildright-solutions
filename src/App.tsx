@@ -14,10 +14,10 @@ import ClientDetailPage from "./pages/admin/ClientDetailPage";
 import LaboursPage from "./pages/admin/LaboursPage";
 import LabourDetailPage from "./pages/admin/LabourDetailPage";
 import ResourcesPage from "./pages/admin/ResourcesPage";
+import ProjectsPage from "./pages/admin/ProjectsPage";
+import ProjectDetailPage from "./pages/admin/ProjectDetailPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import NotFound from "./pages/NotFound";
-
-import NotesPage from "./pages/admin/NotesPage";
 
 const queryClient = new QueryClient();
 
@@ -30,23 +30,21 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               
-              {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
+                <Route path="projects" element={<ProjectsPage />} />
+                <Route path="projects/:id" element={<ProjectDetailPage />} />
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="clients/:id" element={<ClientDetailPage />} />
                 <Route path="labours" element={<LaboursPage />} />
                 <Route path="labours/:id" element={<LabourDetailPage />} />
                 <Route path="resources" element={<ResourcesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
-                <Route path="notes" element={<NotesPage />} />
               </Route>
               
-              {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
