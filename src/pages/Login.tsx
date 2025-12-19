@@ -50,9 +50,9 @@ export default function Login() {
         <div className="bg-card rounded-2xl shadow-card p-8 animate-scale-in">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
-              <span className="text-primary-foreground font-bold text-2xl">NC</span>
-            </div>
+            <h2 className="font-semibold text-lg text-gray-900">
+              Ningthou Constructions
+            </h2>
             <h1 className="text-2xl font-bold text-foreground">Admin Login</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Sign in to access the dashboard

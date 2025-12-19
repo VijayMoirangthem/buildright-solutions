@@ -64,11 +64,8 @@ export function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <a href="#home" className="flex items-center gap-2 z-10">
-            <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold text-xl">NC</span>
-            </div>
-            <span className="font-semibold text-lg hidden sm:block text-gray-900">
-              Ningthoujam Constructions
+            <span className="font-semibold text-lg text-gray-900">
+              Ningthou Constructions
             </span>
           </a>
 
