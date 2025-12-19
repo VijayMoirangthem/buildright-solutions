@@ -330,9 +330,9 @@ export const dashboardStats = {
 export const companySettings = {
   companyName: 'Ningthoujam Constructions',
   ownerName: 'Arnold Ningthoujam',
-  phone: '+91 98765 12345',
+  phone: '+91 84139 39905',
   email: 'contact@ningthoujamconstructions.com',
-  address: 'Kwakeithel, Imphal West, Manipur - 795001',
+  address: 'Chajing Mamang Leikai (Near Triveni School), Imphal West, Manipur - 795130',
 };
 
 export const services = [
