@@ -26,10 +26,10 @@ import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: FolderKanban, label: 'Projects', path: '/admin/projects' },
-  { icon: Users, label: 'Clients', path: '/admin/clients' },
   { icon: HardHat, label: 'Labours', path: '/admin/labours' },
+  { icon: Users, label: 'Clients', path: '/admin/clients' },
   { icon: Package, label: 'Resources', path: '/admin/resources' },
+  { icon: FolderKanban, label: 'Projects', path: '/admin/projects' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Download, MoreVertical, Edit, Trash2, FolderKanban } from 'lucide-react';
+import { Plus, Search, Download, MoreVertical, Edit, Trash2, FolderKanban, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,6 +47,8 @@ export default function ProjectsPage() {
     return matchesSearch && matchesStatus;
   });
 
+
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Ongoing': return 'bg-primary/10 text-primary';
@@ -87,20 +89,24 @@ export default function ProjectsPage() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Projects</h1>
-          <p className="text-sm text-muted-foreground">
-            {projects.length} total projects
-          </p>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Projects</h1>
+            <p className="text-sm text-muted-foreground">
+              {projects.length} total projects
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Export</span>
+          <Button variant="outline" size="icon" onClick={handleExport} className="h-9 w-9">
+            <Download className="w-4 h-4" />
           </Button>
-          <Button size="sm" onClick={() => setAddModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Project
+          <Button onClick={() => setAddModalOpen(true)} size="sm" className="h-9">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Project</span>
           </Button>
         </div>
       </div>
