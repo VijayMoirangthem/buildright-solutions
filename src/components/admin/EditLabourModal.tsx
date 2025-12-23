@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useData } from '@/contexts/DataContext';
 import { toast } from 'sonner';
 
 interface Labour {
@@ -24,22 +25,25 @@ interface Labour {
   address: string;
   notes: string;
   status: 'Active' | 'Inactive';
+  projectId?: string;
 }
 
 interface EditLabourModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   labour: Labour;
-  onUpdate: (data: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive' }) => void;
+  onUpdate: (data: { name: string; phone: string; address: string; notes: string; status: 'Active' | 'Inactive'; projectId?: string }) => void;
 }
 
 export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLabourModalProps) {
+  const { projects } = useData();
   const [formData, setFormData] = useState({
     name: labour.name,
     phone: labour.phone,
     address: labour.address,
     notes: labour.notes,
     status: labour.status,
+    projectId: labour.projectId || 'none',
   });
 
   useEffect(() => {
@@ -49,6 +53,7 @@ export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLa
       address: labour.address,
       notes: labour.notes,
       status: labour.status,
+      projectId: labour.projectId || 'none',
     });
   }, [labour]);
 
@@ -62,7 +67,10 @@ export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLa
       toast.error('Phone number must be exactly 10 digits');
       return;
     }
-    onUpdate(formData);
+    onUpdate({
+      ...formData,
+      projectId: formData.projectId === 'none' ? undefined : formData.projectId,
+    });
   };
 
   return (
@@ -88,20 +96,39 @@ export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLa
               placeholder="9876543210"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) => setFormData({ ...formData, status: value as 'Active' | 'Inactive' })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value as 'Active' | 'Inactive' })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Project</label>
+              <Select 
+                value={formData.projectId} 
+                onValueChange={(value) => setFormData({ ...formData, projectId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Address</label>

@@ -1,348 +1,371 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
+  projects as initialProjects, 
   clients as initialClients, 
   labours as initialLabours, 
   resources as initialResources,
-  projects as initialProjects,
+  Project,
   Client,
   Labour,
-  Resource,
-  Project
+  Resource
 } from '@/data/mockData';
 
 interface DataContextType {
+  projects: Project[];
   clients: Client[];
   labours: Labour[];
   resources: Resource[];
-  projects: Project[];
+  addProject: (project: Omit<Project, 'id'>) => void;
+  updateProject: (id: string, project: Partial<Project>) => void;
+  deleteProject: (id: string) => void;
   addClient: (client: Omit<Client, 'id' | 'dateAdded' | 'financialRecords' | 'resourceUsage'>) => void;
-  updateClient: (id: string, data: Partial<Client>) => void;
+  updateClient: (id: string, client: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   addLabour: (labour: Omit<Labour, 'id' | 'dateJoined' | 'attendance' | 'financialRecords'>) => void;
-  updateLabour: (id: string, data: Partial<Labour>) => void;
+  updateLabour: (id: string, labour: Partial<Labour>) => void;
   deleteLabour: (id: string) => void;
-  addResource: (resource: Omit<Resource, 'id' | 'used' | 'remaining' | 'startDate' | 'endDate'>) => void;
-  updateResource: (id: string, data: Partial<Resource>) => void;
+  addResource: (resource: Omit<Resource, 'id' | 'remaining' | 'startDate' | 'endDate' | 'used'>) => void;
+  updateResource: (id: string, resource: Partial<Resource>) => void;
   deleteResource: (id: string) => void;
-  addProject: (project: Omit<Project, 'id' | 'image'>) => void;
-  updateProject: (id: string, data: Partial<Project>) => void;
-  deleteProject: (id: string) => void;
-  getProjectById: (id: string) => Project | undefined;
-  getClientById: (id: string) => Client | undefined;
-  getLabourById: (id: string) => Labour | undefined;
-  getResourceById: (id: string) => Resource | undefined;
+  linkClientToProject: (clientId: string, projectId: string) => void;
+  linkLabourToProject: (labourId: string, projectId: string) => void;
+  linkResourceToProject: (resourceId: string, projectId: string) => void;
+  unlinkClientFromProject: (clientId: string, projectId: string) => void;
+  unlinkLabourFromProject: (labourId: string, projectId: string) => void;
+  unlinkResourceFromProject: (resourceId: string, projectId: string) => void;
 }
 
-const DataContext = createContext<DataContextType | null>(null);
+const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export function DataProvider({ children }: { children: ReactNode }) {
+export function DataProvider({ children }: { children: React.ReactNode }) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [labours, setLabours] = useState<Labour[]>(initialLabours);
   const [resources, setResources] = useState<Resource[]>(initialResources);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+
+  // Project CRUD
+  const addProject = (project: Omit<Project, 'id'>) => {
+    const newProject: Project = {
+      ...project,
+      id: String(Date.now()),
+    };
+    setProjects(prev => [...prev, newProject]);
+  };
+
+  const updateProject = (id: string, updatedProject: Partial<Project>) => {
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updatedProject } : p));
+  };
+
+  const deleteProject = (id: string) => {
+    // Remove project
+    setProjects(prev => prev.filter(p => p.id !== id));
+    
+    // Unlink clients
+    setClients(prev => prev.map(c => 
+      c.projectId === id ? { ...c, projectId: undefined } : c
+    ));
+    
+    // Unlink labours
+    setLabours(prev => prev.map(l => 
+      l.projectId === id ? { ...l, projectId: undefined } : l
+    ));
+    
+    // Unlink resources
+    setResources(prev => prev.map(r => 
+      r.projectId === id ? { ...r, projectId: undefined } : r
+    ));
+  };
 
   // Client CRUD
-  const addClient = (data: Omit<Client, 'id' | 'dateAdded' | 'financialRecords' | 'resourceUsage'>) => {
+  const addClient = (client: Omit<Client, 'id' | 'dateAdded' | 'financialRecords' | 'resourceUsage'>) => {
     const newClient: Client = {
+      ...client,
       id: String(Date.now()),
-      ...data,
       dateAdded: new Date().toISOString().split('T')[0],
       financialRecords: [],
       resourceUsage: [],
     };
-    setClients(prev => [newClient, ...prev]);
+    setClients(prev => [...prev, newClient]);
     
-    // Update project if linked
-    if (data.projectId) {
+    // If client has a projectId, sync with project
+    if (newClient.projectId) {
       setProjects(prev => prev.map(p => 
-        p.id === data.projectId 
+        p.id === newClient.projectId 
           ? { ...p, clientIds: [...p.clientIds, newClient.id] }
           : p
       ));
     }
   };
 
-  const updateClient = (id: string, data: Partial<Client>) => {
+  const updateClient = (id: string, updatedClient: Partial<Client>) => {
     const oldClient = clients.find(c => c.id === id);
-    setClients(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
+    const oldProjectId = oldClient?.projectId;
+    const newProjectId = updatedClient.projectId;
     
-    // Update project links
-    if (data.projectId !== undefined && oldClient?.projectId !== data.projectId) {
-      setProjects(prev => prev.map(p => {
-        // Remove from old project
-        if (p.id === oldClient?.projectId) {
-          return { ...p, clientIds: p.clientIds.filter(cid => cid !== id) };
-        }
-        // Add to new project
-        if (p.id === data.projectId) {
-          return { ...p, clientIds: [...p.clientIds, id] };
-        }
-        return p;
-      }));
+    setClients(prev => prev.map(c => c.id === id ? { ...c, ...updatedClient } : c));
+    
+    // Handle project linking changes
+    if (oldProjectId !== newProjectId) {
+      // Remove from old project
+      if (oldProjectId) {
+        setProjects(prev => prev.map(p => 
+          p.id === oldProjectId 
+            ? { ...p, clientIds: p.clientIds.filter(cId => cId !== id) }
+            : p
+        ));
+      }
+      
+      // Add to new project
+      if (newProjectId) {
+        setProjects(prev => prev.map(p => 
+          p.id === newProjectId 
+            ? { ...p, clientIds: [...p.clientIds, id] }
+            : p
+        ));
+      }
     }
   };
 
   const deleteClient = (id: string) => {
     const client = clients.find(c => c.id === id);
+    
     setClients(prev => prev.filter(c => c.id !== id));
     
-    // Remove from project
+    // Remove from associated project
     if (client?.projectId) {
       setProjects(prev => prev.map(p => 
         p.id === client.projectId 
-          ? { ...p, clientIds: p.clientIds.filter(cid => cid !== id) }
+          ? { ...p, clientIds: p.clientIds.filter(cId => cId !== id) }
           : p
       ));
     }
   };
 
   // Labour CRUD
-  const addLabour = (data: Omit<Labour, 'id' | 'dateJoined' | 'attendance' | 'financialRecords'>) => {
+  const addLabour = (labour: Omit<Labour, 'id' | 'dateJoined' | 'attendance' | 'financialRecords'>) => {
     const newLabour: Labour = {
+      ...labour,
       id: String(Date.now()),
-      ...data,
       dateJoined: new Date().toISOString().split('T')[0],
       attendance: [],
       financialRecords: [],
     };
-    setLabours(prev => [newLabour, ...prev]);
+    setLabours(prev => [...prev, newLabour]);
     
-    // Update project if linked
-    if (data.projectId) {
+    // If labour has a projectId, sync with project
+    if (newLabour.projectId) {
       setProjects(prev => prev.map(p => 
-        p.id === data.projectId 
+        p.id === newLabour.projectId 
           ? { ...p, labourIds: [...p.labourIds, newLabour.id] }
           : p
       ));
     }
   };
 
-  const updateLabour = (id: string, data: Partial<Labour>) => {
+  const updateLabour = (id: string, updatedLabour: Partial<Labour>) => {
     const oldLabour = labours.find(l => l.id === id);
-    setLabours(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
+    const oldProjectId = oldLabour?.projectId;
+    const newProjectId = updatedLabour.projectId;
     
-    // Update project links
-    if (data.projectId !== undefined && oldLabour?.projectId !== data.projectId) {
-      setProjects(prev => prev.map(p => {
-        // Remove from old project
-        if (p.id === oldLabour?.projectId) {
-          return { ...p, labourIds: p.labourIds.filter(lid => lid !== id) };
-        }
-        // Add to new project
-        if (p.id === data.projectId) {
-          return { ...p, labourIds: [...p.labourIds, id] };
-        }
-        return p;
-      }));
+    setLabours(prev => prev.map(l => l.id === id ? { ...l, ...updatedLabour } : l));
+    
+    // Handle project linking changes
+    if (oldProjectId !== newProjectId) {
+      // Remove from old project
+      if (oldProjectId) {
+        setProjects(prev => prev.map(p => 
+          p.id === oldProjectId 
+            ? { ...p, labourIds: p.labourIds.filter(lId => lId !== id) }
+            : p
+        ));
+      }
+      
+      // Add to new project
+      if (newProjectId) {
+        setProjects(prev => prev.map(p => 
+          p.id === newProjectId 
+            ? { ...p, labourIds: [...p.labourIds, id] }
+            : p
+        ));
+      }
     }
   };
 
   const deleteLabour = (id: string) => {
     const labour = labours.find(l => l.id === id);
+    
     setLabours(prev => prev.filter(l => l.id !== id));
     
-    // Remove from project
+    // Remove from associated project
     if (labour?.projectId) {
       setProjects(prev => prev.map(p => 
         p.id === labour.projectId 
-          ? { ...p, labourIds: p.labourIds.filter(lid => lid !== id) }
+          ? { ...p, labourIds: p.labourIds.filter(lId => lId !== id) }
           : p
       ));
     }
   };
 
   // Resource CRUD
-  const addResource = (data: Omit<Resource, 'id' | 'used' | 'remaining' | 'startDate' | 'endDate'>) => {
+  const addResource = (resource: Omit<Resource, 'id' | 'remaining' | 'used'>) => {
     const newResource: Resource = {
+      ...resource,
       id: String(Date.now()),
-      ...data,
       used: 0,
-      remaining: data.quantityPurchased,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      remaining: resource.quantityPurchased,
+      unit: resource.unit || 'Bags',
+      purchaseDate: resource.purchaseDate || new Date().toISOString().split('T')[0],
     };
-    setResources(prev => [newResource, ...prev]);
+    setResources(prev => [...prev, newResource]);
     
-    // Update project if linked
-    if (data.projectId) {
+    // If resource has a projectId, sync with project
+    if (newResource.projectId) {
       setProjects(prev => prev.map(p => 
-        p.id === data.projectId 
+        p.id === newResource.projectId 
           ? { ...p, resourceIds: [...p.resourceIds, newResource.id] }
           : p
       ));
     }
   };
 
-  const updateResource = (id: string, data: Partial<Resource>) => {
+  const updateResource = (id: string, updatedResource: Partial<Resource>) => {
     const oldResource = resources.find(r => r.id === id);
-    setResources(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
+    const oldProjectId = oldResource?.projectId;
+    const newProjectId = updatedResource.projectId;
     
-    // Update project links
-    if (data.projectId !== undefined && oldResource?.projectId !== data.projectId) {
-      setProjects(prev => prev.map(p => {
-        // Remove from old project
-        if (p.id === oldResource?.projectId) {
-          return { ...p, resourceIds: p.resourceIds.filter(rid => rid !== id) };
-        }
-        // Add to new project
-        if (p.id === data.projectId) {
-          return { ...p, resourceIds: [...p.resourceIds, id] };
-        }
-        return p;
-      }));
+    setResources(prev => prev.map(r => r.id === id ? { ...r, ...updatedResource } : r));
+    
+    // Handle project linking changes
+    if (oldProjectId !== newProjectId) {
+      // Remove from old project
+      if (oldProjectId) {
+        setProjects(prev => prev.map(p => 
+          p.id === oldProjectId 
+            ? { ...p, resourceIds: p.resourceIds.filter(rId => rId !== id) }
+            : p
+        ));
+      }
+      
+      // Add to new project
+      if (newProjectId) {
+        setProjects(prev => prev.map(p => 
+          p.id === newProjectId 
+            ? { ...p, resourceIds: [...p.resourceIds, id] }
+            : p
+        ));
+      }
     }
   };
 
   const deleteResource = (id: string) => {
     const resource = resources.find(r => r.id === id);
+    
     setResources(prev => prev.filter(r => r.id !== id));
     
-    // Remove from project
+    // Remove from associated project
     if (resource?.projectId) {
       setProjects(prev => prev.map(p => 
         p.id === resource.projectId 
-          ? { ...p, resourceIds: p.resourceIds.filter(rid => rid !== id) }
+          ? { ...p, resourceIds: p.resourceIds.filter(rId => rId !== id) }
           : p
       ));
     }
   };
 
-  // Project CRUD
-  const addProject = (data: Omit<Project, 'id' | 'image'>) => {
-    const newProject: Project = {
-      id: String(Date.now()),
-      ...data,
-      image: '/placeholder.svg',
-    };
-    setProjects(prev => [newProject, ...prev]);
-    
-    // Update linked entities
-    data.clientIds.forEach(cid => {
-      setClients(prev => prev.map(c => 
-        c.id === cid ? { ...c, projectId: newProject.id } : c
-      ));
-    });
-    data.labourIds.forEach(lid => {
-      setLabours(prev => prev.map(l => 
-        l.id === lid ? { ...l, projectId: newProject.id } : l
-      ));
-    });
-    data.resourceIds.forEach(rid => {
-      setResources(prev => prev.map(r => 
-        r.id === rid ? { ...r, projectId: newProject.id } : r
-      ));
-    });
+  // Linking functions
+  const linkClientToProject = (clientId: string, projectId: string) => {
+    setClients(prev => prev.map(c => 
+      c.id === clientId ? { ...c, projectId } : c
+    ));
+    setProjects(prev => prev.map(p => 
+      p.id === projectId && !p.clientIds.includes(clientId)
+        ? { ...p, clientIds: [...p.clientIds, clientId] }
+        : p
+    ));
   };
 
-  const updateProject = (id: string, data: Partial<Project>) => {
-    const oldProject = projects.find(p => p.id === id);
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-    
-    // Handle client links
-    if (data.clientIds && oldProject) {
-      const removedClients = oldProject.clientIds.filter(cid => !data.clientIds!.includes(cid));
-      const addedClients = data.clientIds.filter(cid => !oldProject.clientIds.includes(cid));
-      
-      removedClients.forEach(cid => {
-        setClients(prev => prev.map(c => 
-          c.id === cid ? { ...c, projectId: undefined } : c
-        ));
-      });
-      addedClients.forEach(cid => {
-        setClients(prev => prev.map(c => 
-          c.id === cid ? { ...c, projectId: id } : c
-        ));
-      });
-    }
-    
-    // Handle labour links
-    if (data.labourIds && oldProject) {
-      const removedLabours = oldProject.labourIds.filter(lid => !data.labourIds!.includes(lid));
-      const addedLabours = data.labourIds.filter(lid => !oldProject.labourIds.includes(lid));
-      
-      removedLabours.forEach(lid => {
-        setLabours(prev => prev.map(l => 
-          l.id === lid ? { ...l, projectId: undefined } : l
-        ));
-      });
-      addedLabours.forEach(lid => {
-        setLabours(prev => prev.map(l => 
-          l.id === lid ? { ...l, projectId: id } : l
-        ));
-      });
-    }
-    
-    // Handle resource links
-    if (data.resourceIds && oldProject) {
-      const removedResources = oldProject.resourceIds.filter(rid => !data.resourceIds!.includes(rid));
-      const addedResources = data.resourceIds.filter(rid => !oldProject.resourceIds.includes(rid));
-      
-      removedResources.forEach(rid => {
-        setResources(prev => prev.map(r => 
-          r.id === rid ? { ...r, projectId: undefined } : r
-        ));
-      });
-      addedResources.forEach(rid => {
-        setResources(prev => prev.map(r => 
-          r.id === rid ? { ...r, projectId: id } : r
-        ));
-      });
-    }
+  const linkLabourToProject = (labourId: string, projectId: string) => {
+    setLabours(prev => prev.map(l => 
+      l.id === labourId ? { ...l, projectId } : l
+    ));
+    setProjects(prev => prev.map(p => 
+      p.id === projectId && !p.labourIds.includes(labourId)
+        ? { ...p, labourIds: [...p.labourIds, labourId] }
+        : p
+    ));
   };
 
-  const deleteProject = (id: string) => {
-    const project = projects.find(p => p.id === id);
-    setProjects(prev => prev.filter(p => p.id !== id));
-    
-    // Unlink entities
-    if (project) {
-      project.clientIds.forEach(cid => {
-        setClients(prev => prev.map(c => 
-          c.id === cid ? { ...c, projectId: undefined } : c
-        ));
-      });
-      project.labourIds.forEach(lid => {
-        setLabours(prev => prev.map(l => 
-          l.id === lid ? { ...l, projectId: undefined } : l
-        ));
-      });
-      project.resourceIds.forEach(rid => {
-        setResources(prev => prev.map(r => 
-          r.id === rid ? { ...r, projectId: undefined } : r
-        ));
-      });
-    }
+  const linkResourceToProject = (resourceId: string, projectId: string) => {
+    setResources(prev => prev.map(r => 
+      r.id === resourceId ? { ...r, projectId } : r
+    ));
+    setProjects(prev => prev.map(p => 
+      p.id === projectId && !p.resourceIds.includes(resourceId)
+        ? { ...p, resourceIds: [...p.resourceIds, resourceId] }
+        : p
+    ));
   };
 
-  // Getters
-  const getProjectById = (id: string) => projects.find(p => p.id === id);
-  const getClientById = (id: string) => clients.find(c => c.id === id);
-  const getLabourById = (id: string) => labours.find(l => l.id === id);
-  const getResourceById = (id: string) => resources.find(r => r.id === id);
+  const unlinkClientFromProject = (clientId: string, projectId: string) => {
+    setClients(prev => prev.map(c => 
+      c.id === clientId ? { ...c, projectId: undefined } : c
+    ));
+    setProjects(prev => prev.map(p => 
+      p.id === projectId 
+        ? { ...p, clientIds: p.clientIds.filter(id => id !== clientId) }
+        : p
+    ));
+  };
+
+  const unlinkLabourFromProject = (labourId: string, projectId: string) => {
+    setLabours(prev => prev.map(l => 
+      l.id === labourId ? { ...l, projectId: undefined } : l
+    ));
+    setProjects(prev => prev.map(p => 
+      p.id === projectId 
+        ? { ...p, labourIds: p.labourIds.filter(id => id !== labourId) }
+        : p
+    ));
+  };
+
+  const unlinkResourceFromProject = (resourceId: string, projectId: string) => {
+    setResources(prev => prev.map(r => 
+      r.id === resourceId ? { ...r, projectId: undefined } : r
+    ));
+    setProjects(prev => prev.map(p => 
+      p.id === projectId 
+        ? { ...p, resourceIds: p.resourceIds.filter(id => id !== resourceId) }
+        : p
+    ));
+  };
 
   return (
-    <DataContext.Provider value={{
-      clients,
-      labours,
-      resources,
-      projects,
-      addClient,
-      updateClient,
-      deleteClient,
-      addLabour,
-      updateLabour,
-      deleteLabour,
-      addResource,
-      updateResource,
-      deleteResource,
-      addProject,
-      updateProject,
-      deleteProject,
-      getProjectById,
-      getClientById,
-      getLabourById,
-      getResourceById,
-    }}>
+    <DataContext.Provider
+      value={{
+        projects,
+        clients,
+        labours,
+        resources,
+        addProject,
+        updateProject,
+        deleteProject,
+        addClient,
+        updateClient,
+        deleteClient,
+        addLabour,
+        updateLabour,
+        deleteLabour,
+        addResource,
+        updateResource,
+        deleteResource,
+        linkClientToProject,
+        linkLabourToProject,
+        linkResourceToProject,
+        unlinkClientFromProject,
+        unlinkLabourFromProject,
+        unlinkResourceFromProject,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
@@ -350,7 +373,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
 export function useData() {
   const context = useContext(DataContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useData must be used within a DataProvider');
   }
   return context;

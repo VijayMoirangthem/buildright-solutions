@@ -8,6 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useData } from '@/contexts/DataContext';
 import { toast } from 'sonner';
 
 interface Client {
@@ -17,22 +25,25 @@ interface Client {
   email: string;
   address: string;
   notes: string;
+  projectId?: string;
 }
 
 interface EditClientModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client: Client;
-  onUpdate: (data: { name: string; phone: string; email: string; address: string; notes: string }) => void;
+  onUpdate: (data: { name: string; phone: string; email: string; address: string; notes: string; projectId?: string }) => void;
 }
 
 export function EditClientModal({ open, onOpenChange, client, onUpdate }: EditClientModalProps) {
+  const { projects } = useData();
   const [formData, setFormData] = useState({
     name: client.name,
     phone: client.phone,
     email: client.email,
     address: client.address,
     notes: client.notes,
+    projectId: client.projectId || 'none',
   });
 
   useEffect(() => {
@@ -42,6 +53,7 @@ export function EditClientModal({ open, onOpenChange, client, onUpdate }: EditCl
       email: client.email,
       address: client.address,
       notes: client.notes,
+      projectId: client.projectId || 'none',
     });
   }, [client]);
 
@@ -51,7 +63,10 @@ export function EditClientModal({ open, onOpenChange, client, onUpdate }: EditCl
       toast.error('Name and phone are required');
       return;
     }
-    onUpdate(formData);
+    onUpdate({
+      ...formData,
+      projectId: formData.projectId === 'none' ? undefined : formData.projectId,
+    });
   };
 
   return (
@@ -76,6 +91,23 @@ export function EditClientModal({ open, onOpenChange, client, onUpdate }: EditCl
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="+91 98765 43210"
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Project</label>
+            <Select 
+              value={formData.projectId} 
+              onValueChange={(value) => setFormData({ ...formData, projectId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select project (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Project</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>

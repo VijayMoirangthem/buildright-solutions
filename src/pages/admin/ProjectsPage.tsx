@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Download, MoreVertical, Edit, Trash2, FolderKanban, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -47,8 +47,6 @@ export default function ProjectsPage() {
     return matchesSearch && matchesStatus;
   });
 
-
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Ongoing': return 'bg-primary/10 text-primary';
@@ -86,17 +84,17 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Projects</h1>
-            <p className="text-sm text-muted-foreground">
-              {projects.length} total projects
+            <p className="text-sm text-muted-foreground hidden sm:block">
+              Manage your projects
             </p>
           </div>
         </div>
@@ -105,7 +103,7 @@ export default function ProjectsPage() {
             <Download className="w-4 h-4" />
           </Button>
           <Button onClick={() => setAddModalOpen(true)} size="sm" className="h-9">
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Add Project</span>
           </Button>
         </div>
@@ -137,7 +135,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Projects Grid */}
+      {/* Projects Grid with Count */}
       {filteredProjects.length === 0 ? (
         <Card className="p-8 text-center">
           <FolderKanban className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -153,80 +151,87 @@ export default function ProjectsPage() {
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProjects.map((project) => (
-            <Card
-              key={project.id}
-              className="shadow-card hover:shadow-card-hover transition-all cursor-pointer group"
-              onClick={() => navigate(`/admin/projects/${project.id}`)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                      {project.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground truncate">{project.location}</p>
+        <>
+          <Card className="shadow-card">
+            <CardHeader className="border-b border-border py-3 px-4">
+              <CardTitle className="text-base">All Projects ({filteredProjects.length})</CardTitle>
+            </CardHeader>
+          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProjects.map((project) => (
+              <Card
+                key={project.id}
+                className="shadow-card hover:shadow-card-hover transition-all cursor-pointer group"
+                onClick={() => navigate(`/admin/projects/${project.id}`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                        {project.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground truncate">{project.location}</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => handleEdit(project, e)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-danger focus:text-danger"
+                          onClick={(e) => handleDelete(project.id, e)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => handleEdit(project, e)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-danger focus:text-danger"
-                        onClick={(e) => handleDelete(project.id, e)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
 
-                <Badge className={`${getStatusColor(project.status)} mb-3`}>
-                  {project.status}
-                </Badge>
+                  <Badge className={`${getStatusColor(project.status)} mb-3`}>
+                    {project.status}
+                  </Badge>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium text-foreground">{project.progress}%</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="font-medium text-foreground">{project.progress}%</span>
+                    </div>
+                    <Progress value={project.progress} className="h-2" />
                   </div>
-                  <Progress value={project.progress} className="h-2" />
-                </div>
 
-                <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-xs">
-                  <div>
-                    <p className="font-semibold text-foreground">{project.clientIds.length}</p>
-                    <p className="text-muted-foreground">Clients</p>
+                  <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-xs">
+                    <div>
+                      <p className="font-semibold text-foreground">{project.clientIds.length}</p>
+                      <p className="text-muted-foreground">Clients</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{project.labourIds.length}</p>
+                      <p className="text-muted-foreground">Labours</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{project.resourceIds.length}</p>
+                      <p className="text-muted-foreground">Resources</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-foreground">{project.labourIds.length}</p>
-                    <p className="text-muted-foreground">Labours</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">{project.resourceIds.length}</p>
-                    <p className="text-muted-foreground">Resources</p>
-                  </div>
-                </div>
 
-                <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
-                  <div className="flex justify-between">
-                    <span>Start: {new Date(project.startDate).toLocaleDateString()}</span>
-                    <span>End: {new Date(project.endDate).toLocaleDateString()}</span>
+                  <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span>Start: {new Date(project.startDate).toLocaleDateString()}</span>
+                      <span>End: {new Date(project.endDate).toLocaleDateString()}</span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Modals */}

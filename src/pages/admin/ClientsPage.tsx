@@ -34,12 +34,26 @@ export default function ClientsPage() {
       client.phone.includes(searchTerm)
   );
 
-  const handleAddClient = (data: { name: string; phone: string; email: string; address: string; notes: string }) => {
+  const handleAddClient = (data: { 
+    name: string; 
+    phone: string; 
+    email: string; 
+    address: string; 
+    notes: string;
+    projectId?: string;
+  }) => {
     addClient(data);
     toast.success('Client added successfully!');
   };
 
-  const handleUpdateClient = (data: { name: string; phone: string; email: string; address: string; notes: string }) => {
+  const handleUpdateClient = (data: { 
+    name: string; 
+    phone: string; 
+    email: string; 
+    address: string; 
+    notes: string;
+    projectId?: string;
+  }) => {
     if (editingClient) {
       updateClient(editingClient.id, data);
       setEditingClient(null);

@@ -15,13 +15,33 @@ interface AddClientModalProps {
 
 export function AddClientModal({ open, onOpenChange, onAdd }: AddClientModalProps) {
   const { projects } = useData();
-  const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '', notes: '', projectId: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    phone: '', 
+    email: '', 
+    address: '', 
+    notes: '', 
+    projectId: 'none' 
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone) { toast.error('Name and phone are required'); return; }
-    onAdd({ ...formData, projectId: formData.projectId || undefined });
-    setFormData({ name: '', phone: '', email: '', address: '', notes: '', projectId: '' });
+    if (!formData.name || !formData.phone) { 
+      toast.error('Name and phone are required'); 
+      return; 
+    }
+    onAdd({ 
+      ...formData, 
+      projectId: formData.projectId === 'none' ? undefined : formData.projectId 
+    });
+    setFormData({ 
+      name: '', 
+      phone: '', 
+      email: '', 
+      address: '', 
+      notes: '', 
+      projectId: 'none' 
+    });
     onOpenChange(false);
     toast.success('Client added successfully!');
   };
@@ -31,21 +51,73 @@ export function AddClientModal({ open, onOpenChange, onAdd }: AddClientModalProp
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>Add New Client</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2"><label className="text-sm font-medium">Name *</label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Enter client name" /></div>
-          <div className="space-y-2"><label className="text-sm font-medium">Phone *</label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 98765 43210" /></div>
-          <div className="space-y-2"><label className="text-sm font-medium">Project</label>
-            <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value })}>
-              <SelectTrigger><SelectValue placeholder="Select project (optional)" /></SelectTrigger>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Name *</label>
+            <Input 
+              value={formData.name} 
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+              placeholder="Enter client name" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Phone *</label>
+            <Input 
+              value={formData.phone} 
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
+              placeholder="9876543210" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Project</label>
+            <Select 
+              value={formData.projectId} 
+              onValueChange={(value) => setFormData({ ...formData, projectId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select project (optional)" />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Project</SelectItem>
-                {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                <SelectItem value="none">No Project</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2"><label className="text-sm font-medium">Email</label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" /></div>
-          <div className="space-y-2"><label className="text-sm font-medium">Address</label><Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} placeholder="Enter address" /></div>
-          <div className="space-y-2"><label className="text-sm font-medium">Notes</label><Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Project details..." rows={2} /></div>
-          <div className="flex gap-3 pt-4"><Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancel</Button><Button type="submit" className="flex-1">Add Client</Button></div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Email</label>
+            <Input 
+              type="email" 
+              value={formData.email} 
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+              placeholder="email@example.com" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Address</label>
+            <Input 
+              value={formData.address} 
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })} 
+              placeholder="Enter address" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Notes</label>
+            <Textarea 
+              value={formData.notes} 
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })} 
+              placeholder="Project details..." 
+              rows={2} 
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1">
+              Add Client
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

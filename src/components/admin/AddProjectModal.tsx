@@ -53,6 +53,7 @@ export function AddProjectModal({ open, onOpenChange }: AddProjectModalProps) {
     addProject({
       ...formData,
       budget: Number(formData.budget) || 0,
+      image: '', // Add a default empty string for the image property
     });
     
     setFormData({

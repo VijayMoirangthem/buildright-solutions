@@ -56,14 +56,21 @@ export default function ClientDetailPage() {
   const client = clients.find((c) => c.id === id);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleUpdateClient = (data: { name: string; phone: string; email: string; address: string; notes: string }) => {
+  const handleUpdateClient = (data: {
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+    notes: string;
+    projectId?: string;  // ← ADD THIS LINE
+  }) => {
     if (client) {
       updateClient(client.id, data);
       setIsEditModalOpen(false);
       toast.success('Client updated successfully!');
     }
   };
-  
+
   const [financialRecords, setFinancialRecords] = useState<FinancialRecord[]>(
     client?.financialRecords || []
   );
@@ -104,7 +111,7 @@ export default function ClientDetailPage() {
       toast.error('Please enter a valid amount');
       return;
     }
-    
+
     const record: FinancialRecord = {
       id: String(Date.now()),
       date: newRecord.date,
@@ -112,7 +119,7 @@ export default function ClientDetailPage() {
       type: newRecord.type,
       notes: newRecord.notes,
     };
-    
+
     const updated = [record, ...financialRecords];
     setFinancialRecords(updated);
     updateClient(client.id, { financialRecords: updated });
@@ -126,9 +133,9 @@ export default function ClientDetailPage() {
       toast.error('Please enter a valid amount');
       return;
     }
-    
-    const updated = financialRecords.map(r => 
-      r.id === editingRecord.id 
+
+    const updated = financialRecords.map(r =>
+      r.id === editingRecord.id
         ? { ...r, date: newRecord.date, amount: Number(newRecord.amount), type: newRecord.type, notes: newRecord.notes }
         : r
     );
@@ -158,19 +165,19 @@ export default function ClientDetailPage() {
     setEditingRecord(record);
   };
 
-interface ClientFinancialExportData {
-  [key: string]: unknown; // Add index signature
-  name: string;
-  phone: string;
-  email: string;
-  address: string;
-  dateAdded: string;
-  clientNotes: string;
-  recordDate: string;
-  amount: number | string;
-  type: 'Received' | 'Due' | 'N/A';
-  recordNotes: string;
-}
+  interface ClientFinancialExportData {
+    [key: string]: unknown; // Add index signature
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+    dateAdded: string;
+    clientNotes: string;
+    recordDate: string;
+    amount: number | string;
+    type: 'Received' | 'Due' | 'N/A';
+    recordNotes: string;
+  }
 
   const handleDownload = () => {
     if (!client) {

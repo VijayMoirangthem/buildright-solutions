@@ -79,11 +79,11 @@ export interface LabourFinancialRecord {
 export interface Resource {
   id: string;
   type: string;
+  unit: string; // NEW FIELD
   quantityPurchased: number;
   used: number;
   remaining: number;
-  startDate: string;
-  endDate: string;
+  purchaseDate: string; // NEW FIELD (renamed from startDate)
   price: number;
   notes: string;
   projectId?: string;
@@ -360,74 +360,74 @@ export const labours: Labour[] = [
 export const resources: Resource[] = [
   {
     id: '1',
-    type: 'Cement (Bags)',
+    type: 'Cement',
+    unit: 'Bags',
     quantityPurchased: 1000,
     used: 720,
     remaining: 280,
-    startDate: '2024-07-01',
-    endDate: '2024-12-31',
+    purchaseDate: '2024-07-01',
     price: 360000,
     notes: 'ACC Cement - 50kg bags',
     projectId: '1',
   },
   {
     id: '2',
-    type: 'Steel Rods (Tons)',
+    type: 'Steel Rods',
+    unit: 'Tons',
     quantityPurchased: 20,
     used: 14,
     remaining: 6,
-    startDate: '2024-07-15',
-    endDate: '2024-11-30',
+    purchaseDate: '2024-07-15',
     price: 1100000,
-    notes: 'TMT bars - mixed sizes',
+    notes: 'TMT bars - mixed sizes (10mm, 12mm, 16mm)',
     projectId: '1',
   },
   {
     id: '3',
-    type: 'Bricks (Units)',
+    type: 'Bricks',
+    unit: 'Units',
     quantityPurchased: 50000,
     used: 35000,
     remaining: 15000,
-    startDate: '2024-08-01',
-    endDate: '2024-12-31',
+    purchaseDate: '2024-08-01',
     price: 350000,
-    notes: 'First class bricks',
+    notes: 'First class red bricks',
     projectId: '2',
   },
   {
     id: '4',
-    type: 'Sand (Cubic Meters)',
+    type: 'River Sand',
+    unit: 'Cubic Meters',
     quantityPurchased: 200,
     used: 150,
     remaining: 50,
-    startDate: '2024-07-01',
-    endDate: '2024-10-31',
+    purchaseDate: '2024-07-01',
     price: 90000,
-    notes: 'River sand for construction',
+    notes: 'Grade-A river sand for construction',
     projectId: '4',
   },
   {
     id: '5',
-    type: 'Gravel (Cubic Meters)',
+    type: 'Gravel (20mm)',
+    unit: 'Cubic Meters',
     quantityPurchased: 150,
     used: 120,
     remaining: 30,
-    startDate: '2024-07-01',
-    endDate: '2024-10-31',
+    purchaseDate: '2024-07-01',
     price: 75000,
-    notes: '20mm aggregate',
+    notes: '20mm aggregate for concrete',
     projectId: '2',
   },
   {
     id: '6',
-    type: 'Timber (Cubic Feet)',
+    type: 'Timber (Sal Wood)',
+    unit: 'Cubic Feet',
     quantityPurchased: 500,
     used: 200,
     remaining: 300,
-    startDate: '2024-09-01',
-    endDate: '2025-03-31',
+    purchaseDate: '2024-09-01',
     price: 250000,
-    notes: 'Sal wood for doors and frames',
+    notes: 'Sal wood for doors and window frames',
     projectId: '3',
   },
 ];
