@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Download, ChevronRight, Pencil, Trash2, ArrowLeft, Filter } from 'lucide-react';
+import { Search, Plus, Download, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
+import { BackButton } from '@/components/admin/BackButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,9 +76,7 @@ export default function LaboursPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Labours</h1>
             <p className="text-sm text-muted-foreground hidden sm:block">Manage your workforce</p>

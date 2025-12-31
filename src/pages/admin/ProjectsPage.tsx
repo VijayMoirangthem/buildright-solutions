@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Download, MoreVertical, Edit, Trash2, FolderKanban, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Download, MoreVertical, Edit, Trash2, FolderKanban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { BackButton } from '@/components/admin/BackButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,9 +89,7 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Projects</h1>
             <p className="text-sm text-muted-foreground hidden sm:block">
