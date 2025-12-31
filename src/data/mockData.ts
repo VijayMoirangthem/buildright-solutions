@@ -36,7 +36,9 @@ export interface FinancialRecord {
   amount: number;
   type: 'Received' | 'Due';
   notes: string;
-  attachment?: string;
+  attachments?: string[];
+  resourceType?: string;
+  resourceQuantity?: number;
 }
 
 export interface ResourceUsage {
