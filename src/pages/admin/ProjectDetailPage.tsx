@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Users, HardHat, Package, Calendar, MapPin, IndianRupee, Trash2 } from 'lucide-react';
+import { Edit, Users, HardHat, Package, Calendar, MapPin, IndianRupee, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { BackButton } from '@/components/admin/BackButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,9 +65,7 @@ export default function ProjectDetailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/projects')}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">{project.name}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

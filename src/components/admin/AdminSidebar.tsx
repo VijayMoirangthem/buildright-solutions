@@ -8,6 +8,7 @@ import {
   Building2,
   LogOut,
   FolderKanban,
+  HardDrive,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -22,7 +23,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useStorage } from '@/contexts/StorageContext';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -30,6 +33,7 @@ const menuItems = [
   { icon: Users, label: 'Clients', path: '/admin/clients' },
   { icon: Package, label: 'Resources', path: '/admin/resources' },
   { icon: FolderKanban, label: 'Projects', path: '/admin/projects' },
+  { icon: HardDrive, label: 'Storage', path: '/admin/storage' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
 
@@ -38,6 +42,7 @@ export function AdminSidebar() {
   const navigate = useNavigate();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const { user, logout } = useAuth();
+  const { usagePercentage, isWarning, isCritical, formatBytes, usedStorage, totalStorage } = useStorage();
   const collapsed = state === 'collapsed';
 
   const handleLogout = () => {
@@ -80,7 +85,14 @@ export function AdminSidebar() {
                         }`}
                       >
                         <item.icon className="w-5 h-5 shrink-0" />
-                        {!collapsed && <span>{item.label}</span>}
+                        {!collapsed && (
+                          <span className="flex items-center justify-between flex-1">
+                            {item.label}
+                            {item.path === '/admin/storage' && (isCritical || isWarning) && (
+                              <span className={`w-2 h-2 rounded-full ${isCritical ? 'bg-danger' : 'bg-warning'}`} />
+                            )}
+                          </span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -89,6 +101,27 @@ export function AdminSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Storage Indicator */}
+        {!collapsed && (
+          <div className="px-4 mt-4">
+            <div className="p-3 rounded-lg bg-muted/50 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Storage</span>
+                <span className={`font-medium ${isCritical ? 'text-danger' : isWarning ? 'text-warning' : 'text-foreground'}`}>
+                  {usagePercentage.toFixed(0)}%
+                </span>
+              </div>
+              <Progress 
+                value={usagePercentage} 
+                className={`h-1.5 ${isCritical ? '[&>div]:bg-danger' : isWarning ? '[&>div]:bg-warning' : ''}`}
+              />
+              <p className="text-xs text-muted-foreground">
+                {formatBytes(usedStorage)} / {formatBytes(totalStorage)}
+              </p>
+            </div>
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-border">

@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee, Pencil, Trash2, Download } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Phone, MapPin, Calendar, FileText, CheckCircle, XCircle, Plus, IndianRupee, Pencil, Trash2, Download } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
+import { useNavigation } from '@/contexts/NavigationContext';
+import { BackButton } from '@/components/admin/BackButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +67,7 @@ interface LabourDailyRecordExportData {
 export default function LabourDetailPage() {
   const { id } = useParams();
   const { labours, updateLabour } = useData();
+  const { goBack } = useNavigation();
   const labour = labours.find((l) => l.id === id);
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -126,12 +129,9 @@ export default function LabourDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <p className="text-muted-foreground mb-4">Labour not found</p>
-        <Link to="/admin/labours">
-          <Button variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Labours
-          </Button>
-        </Link>
+        <Button variant="outline" onClick={goBack}>
+          Back to Labours
+        </Button>
       </div>
     );
   }
@@ -279,19 +279,10 @@ export default function LabourDetailPage() {
     <div className="space-y-4">
       {/* Page Header */}
       <div className="flex items-center justify-between gap-4">
-        <Link
-          to="/admin/labours"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">
-            <Download className="w-4 h-4" />
-          </Button>
-        </div>
+        <BackButton />
+        <Button variant="outline" size="icon" onClick={handleDownload} className="h-9 w-9">
+          <Download className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Labour Info Card */}
@@ -311,22 +302,22 @@ export default function LabourDetailPage() {
           
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <a href={`tel:${labour.phone}`} className="text-sm hover:underline">
-                    {labour.phone}
-                  </a>
-                </div>
+              <Phone className="w-4 h-4 text-primary" />
+              <a href={`tel:${labour.phone}`} className="text-sm hover:underline">
+                {labour.phone}
+              </a>
+            </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(labour.address)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm hover:underline"
-                  >
-                    {labour.address}
-                  </a>
-                </div>
+              <MapPin className="w-4 h-4 text-primary" />
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(labour.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm hover:underline"
+              >
+                {labour.address}
+              </a>
+            </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="w-4 h-4 text-primary" />
               <span>Joined: {new Date(labour.dateJoined).toLocaleDateString('en-IN')}</span>
@@ -343,44 +334,44 @@ export default function LabourDetailPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-3">
-          <Card className="shadow-card">
-            <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold text-success">{totalFullDays}</p>
-              <p className="text-xs text-muted-foreground">Full Days</p>
-            </CardContent>
-          </Card>
-          <Card className="shadow-card">
-            <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold text-warning">{totalHalfDays}</p>
-              <p className="text-xs text-muted-foreground">Half Days</p>
-            </CardContent>
-          </Card>
-          <Card className="shadow-card">
-            <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold text-danger">{totalAbsent}</p>
-              <p className="text-xs text-muted-foreground">Absent</p>
-            </CardContent>
-          </Card>
-          <Card className="shadow-card">
-            <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold text-info">{totalOvertime}</p>
-              <p className="text-xs text-muted-foreground">Overtime</p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <Card className="shadow-card">
-            <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold text-primary">₹{totalPaid.toLocaleString('en-IN')}</p>
-              <p className="text-xs text-muted-foreground">Total Paid</p>
-            </CardContent>
-          </Card>
-          <Card className="shadow-card">
-            <CardContent className="p-3 text-center">
-              <p className="text-lg font-bold text-primary">₹{totalPaidThisMonth.toLocaleString('en-IN')}</p>
-              <p className="text-xs text-muted-foreground">Paid This Month</p>
-            </CardContent>
-          </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-success">{totalFullDays}</p>
+            <p className="text-xs text-muted-foreground">Full Days</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-warning">{totalHalfDays}</p>
+            <p className="text-xs text-muted-foreground">Half Days</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-danger">{totalAbsent}</p>
+            <p className="text-xs text-muted-foreground">Absent</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-info">{totalOvertime}</p>
+            <p className="text-xs text-muted-foreground">Overtime</p>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-primary">₹{totalPaid.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-muted-foreground">Total Paid</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-primary">₹{totalPaidThisMonth.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-muted-foreground">Paid This Month</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Daily Records */}
@@ -478,18 +469,21 @@ export default function LabourDetailPage() {
               <label className="text-sm font-medium">Attendance</label>
               <Select
                 value={newRecord.attendance}
-                onValueChange={(value) => setNewRecord({ ...newRecord, attendance: value as 'Present' | 'Absent' | 'Overtime' | 'Half day' | '' })}
+                onValueChange={(value) => setNewRecord({ ...newRecord, attendance: value as typeof newRecord.attendance })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select attendance" />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                <SelectItem value="Present">Present</SelectItem>
-</SelectContent>
+                  <SelectItem value="Present">Present</SelectItem>
+                  <SelectItem value="Half day">Half Day</SelectItem>
+                  <SelectItem value="Overtime">Overtime</SelectItem>
+                  <SelectItem value="Absent">Absent</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Amount Paid</label>
+              <label className="text-sm font-medium">Amount Paid (₹)</label>
               <Input
                 type="number"
                 value={newRecord.amountPaid}
@@ -502,8 +496,8 @@ export default function LabourDetailPage() {
               <Textarea
                 value={newRecord.notes}
                 onChange={(e) => setNewRecord({ ...newRecord, notes: e.target.value })}
-                placeholder="Add any notes for this record..."
-                rows={3}
+                placeholder="Optional notes..."
+                rows={2}
               />
             </div>
             <div className="flex gap-3 pt-4">
@@ -515,14 +509,15 @@ export default function LabourDetailPage() {
               }} className="flex-1">
                 Cancel
               </Button>
-              <Button type="submit" onClick={editingRecord ? handleUpdateRecord : handleAddRecord} className="flex-1">
-                {editingRecord ? 'Update Record' : 'Add Record'}
+              <Button onClick={editingRecord ? handleUpdateRecord : handleAddRecord} className="flex-1">
+                {editingRecord ? 'Update' : 'Add'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* Edit Labour Modal */}
       {labour && (
         <EditLabourModal
           open={isEditModalOpen}

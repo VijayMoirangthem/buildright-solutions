@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useData } from '@/contexts/DataContext';
+import { useStorage } from '@/contexts/StorageContext';
+import { BackButton } from '@/components/admin/BackButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Plus, Download, Pencil, Trash2, ArrowLeft, Calendar } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Calendar, Paperclip, ExternalLink } from 'lucide-react';
 import { AddResourceModal } from '@/components/admin/AddResourceModal';
 import { EditResourceModal } from '@/components/admin/EditResourceModal';
 import { exportResources } from '@/lib/exportUtils';
@@ -21,11 +22,16 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function ResourcesPage() {
-  const navigate = useNavigate();
   const { resources, addResource, updateResource, deleteResource } = useData();
+  const { files, formatBytes } = useStorage();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<typeof resources[0] | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
+
+  // Get files linked to resources
+  const getResourceFiles = (resourceId: string) => {
+    return files.filter(f => f.linkedTo?.type === 'resource' && f.linkedTo.id === resourceId);
+  };
 
   const handleAddResource = (data: { 
     type: string; 
@@ -78,9 +84,7 @@ export default function ResourcesPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Resources</h1>
             <p className="text-sm text-muted-foreground hidden sm:block">Track inventory</p>
@@ -108,6 +112,8 @@ export default function ResourcesPage() {
               resources.map((resource) => {
                 const usagePercent = (resource.used / resource.quantityPurchased) * 100;
                 const isLow = usagePercent > 80;
+                const linkedFiles = getResourceFiles(resource.id);
+                
                 return (
                   <div key={resource.id} className="p-4">
                     <div className="flex items-start justify-between mb-3">
@@ -160,6 +166,33 @@ export default function ResourcesPage() {
                         className={`h-2 ${isLow ? '[&>div]:bg-danger' : '[&>div]:bg-primary'}`}
                       />
                     </div>
+
+                    {/* Linked Files */}
+                    {linkedFiles.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground mb-2">Linked Files:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {linkedFiles.map((file) => (
+                            <div
+                              key={file.id}
+                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs"
+                            >
+                              <Paperclip className="w-3 h-3" />
+                              <span className="truncate max-w-[100px]">{file.name}</span>
+                              <span className="text-muted-foreground">({formatBytes(file.size)})</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0"
+                                onClick={() => window.open(file.url, '_blank')}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
