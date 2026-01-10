@@ -79,7 +79,7 @@ export default function ClientDetailPage() {
     type: 'Received' as 'Received' | 'Due',
     notes: '',
     attachments: [] as string[],
-    resourceType: '',
+    resourceType: 'none', // Changed from '' to 'none'
     resourceQuantity: '',
   });
 
@@ -130,7 +130,7 @@ export default function ClientDetailPage() {
       type: newRecord.type,
       notes: newRecord.notes,
       attachments: newRecord.attachments,
-      resourceType: newRecord.resourceType || undefined,
+      resourceType: newRecord.resourceType !== 'none' ? newRecord.resourceType : undefined,
       resourceQuantity: newRecord.resourceQuantity ? Number(newRecord.resourceQuantity) : undefined,
     };
 
@@ -156,7 +156,7 @@ export default function ClientDetailPage() {
       type: 'Received', 
       notes: '',
       attachments: [],
-      resourceType: '',
+      resourceType: 'none',
       resourceQuantity: '',
     });
     setIsAddModalOpen(false);
@@ -170,7 +170,7 @@ export default function ClientDetailPage() {
     }
 
     // Handle resource quantity difference
-    if (newRecord.resourceType && newRecord.resourceQuantity) {
+    if (newRecord.resourceType !== 'none' && newRecord.resourceQuantity) {
       const oldQty = editingRecord.resourceQuantity || 0;
       const newQty = Number(newRecord.resourceQuantity);
       const diff = newQty - oldQty;
@@ -196,7 +196,7 @@ export default function ClientDetailPage() {
             type: newRecord.type, 
             notes: newRecord.notes,
             attachments: newRecord.attachments,
-            resourceType: newRecord.resourceType || undefined,
+            resourceType: newRecord.resourceType !== 'none' ? newRecord.resourceType : undefined,
             resourceQuantity: newRecord.resourceQuantity ? Number(newRecord.resourceQuantity) : undefined,
           }
         : r
@@ -210,7 +210,7 @@ export default function ClientDetailPage() {
       type: 'Received', 
       notes: '',
       attachments: [],
-      resourceType: '',
+      resourceType: 'none',
       resourceQuantity: '',
     });
     toast.success('Record updated successfully!');
@@ -250,7 +250,7 @@ export default function ClientDetailPage() {
       type: record.type,
       notes: record.notes,
       attachments: record.attachments || [],
-      resourceType: record.resourceType || '',
+      resourceType: record.resourceType || 'none',
       resourceQuantity: record.resourceQuantity ? String(record.resourceQuantity) : '',
     });
     setEditingRecord(record);
@@ -491,7 +491,7 @@ export default function ClientDetailPage() {
             type: 'Received', 
             notes: '',
             attachments: [],
-            resourceType: '',
+            resourceType: 'none',
             resourceQuantity: '',
           });
         }
@@ -545,7 +545,7 @@ export default function ClientDetailPage() {
                   <SelectValue placeholder="Select resource type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {availableResources.map((resource) => (
                     <SelectItem key={resource.id} value={resource.type}>
                       {resource.type} ({resource.remaining} {resource.unit} left)
@@ -555,7 +555,7 @@ export default function ClientDetailPage() {
               </Select>
             </div>
 
-            {newRecord.resourceType && (
+            {newRecord.resourceType !== 'none' && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Quantity Used</label>
                 <Input
@@ -605,7 +605,7 @@ export default function ClientDetailPage() {
                   type: 'Received', 
                   notes: '',
                   attachments: [],
-                  resourceType: '',
+                  resourceType: 'none',
                   resourceQuantity: '',
                 });
               }} className="flex-1">

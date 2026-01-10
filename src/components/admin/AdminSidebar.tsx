@@ -26,6 +26,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStorage } from '@/contexts/StorageContext';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -52,6 +53,11 @@ export function AdminSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
+      {/* Hidden title for accessibility */}
+      <VisuallyHidden>
+        <h2>Navigation Menu</h2>
+      </VisuallyHidden>
+      
       <SidebarHeader className="p-4 border-b border-border">
         <Link to="/admin" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0">

@@ -1,10 +1,21 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, HardHat, FolderKanban, IndianRupee, TrendingUp, TrendingDown, Package, Settings } from 'lucide-react';
-import { dashboardStats, activityLog } from '@/data/mockData';
+import { Users, HardHat, FolderKanban, Package, Settings, HardDrive, AlertTriangle, ExternalLink, Image, FileText, File } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useStorage } from '@/contexts/StorageContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { 
+    usagePercentage, 
+    isWarning, 
+    isCritical, 
+    formatBytes, 
+    usedStorage, 
+    totalStorage,
+    files 
+  } = useStorage();
 
   const stats = [
     {
@@ -44,35 +55,9 @@ export default function Dashboard() {
     },
   ];
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'client':
-        return Users;
-      case 'labour':
-        return HardHat;
-      case 'resource':
-        return FolderKanban;
-      case 'payment':
-        return IndianRupee;
-      default:
-        return FolderKanban;
-    }
-  };
-
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'client':
-        return 'bg-primary/10 text-primary';
-      case 'labour':
-        return 'bg-success/10 text-success';
-      case 'resource':
-        return 'bg-warning/10 text-warning';
-      case 'payment':
-        return 'bg-info/10 text-info';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
+  const imageCount = files.filter(f => f.type.startsWith('image/')).length;
+  const pdfCount = files.filter(f => f.type === 'application/pdf').length;
+  const otherCount = files.length - imageCount - pdfCount;
 
   return (
     <div className="space-y-6">
@@ -84,16 +69,16 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Stats Grid - Fixed for mobile */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {stats.map((stat, index) => (
           <Card
+            key={stat.value}
             className="shadow-card hover:shadow-card-hover transition-all hover:-translate-y-1 cursor-pointer overflow-hidden"
             style={{ animationDelay: `${index * 0.1}s` }}
             onClick={() => navigate(stat.path)}
           >
             <CardContent className="p-4 sm:p-6">
-              {/* Top Row: Icon on left, label on right for better mobile layout */}
               <div className="flex items-start justify-between w-full mb-3 sm:mb-4">
                 <div className="space-y-1 sm:space-y-2">
                   <p className="text-xl sm:text-2xl font-bold text-foreground truncate">
@@ -104,11 +89,41 @@ export default function Dashboard() {
                   <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} />
                 </div>
               </div>
-
             </CardContent>
           </Card>
         ))}
-      </div>      
+      </div>
+
+      {/* Storage Card */}
+      <Card
+        className="shadow-card hover:shadow-card-hover transition-all hover:-translate-y-1 cursor-pointer overflow-hidden"
+        onClick={() => navigate('/admin/storage')}
+      >
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-start justify-between w-full mb-3 sm:mb-4">
+            <div className="space-y-1 sm:space-y-2 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-xl sm:text-2xl font-bold text-foreground">Storage</p>
+                {(isCritical || isWarning) && (
+                  <span className={`w-2 h-2 rounded-full ${isCritical ? 'bg-danger' : 'bg-warning'}`} />
+                )}
+              </div>
+              <div className="space-y-1">
+                <Progress 
+                  value={usagePercentage} 
+                  className={`h-1.5 ${isCritical ? '[&>div]:bg-danger' : isWarning ? '[&>div]:bg-warning' : ''}`}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formatBytes(usedStorage)} / {formatBytes(totalStorage)} ({usagePercentage.toFixed(0)}%)
+                </p>
+              </div>
+            </div>
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${isCritical ? 'bg-danger/10' : isWarning ? 'bg-warning/10' : 'bg-info/10'} flex items-center justify-center flex-shrink-0`}>
+              <HardDrive className={`w-5 h-5 sm:w-6 sm:h-6 ${isCritical ? 'text-danger' : isWarning ? 'text-warning' : 'text-info'}`} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
