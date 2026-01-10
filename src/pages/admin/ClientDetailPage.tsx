@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -499,6 +500,9 @@ export default function ClientDetailPage() {
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingRecord ? 'Edit Record' : 'Add Financial Record'}</DialogTitle>
+            <DialogDescription>
+              {editingRecord ? 'Update the financial record details.' : 'Add a new financial record with optional resource linking and file attachments.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

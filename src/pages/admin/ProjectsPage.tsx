@@ -24,6 +24,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useData } from '@/contexts/DataContext';
+
+// Helper function to count actual linked entities
+const getLinkedCounts = (
+  project: Project, 
+  clients: { id: string; projectId?: string }[], 
+  labours: { id: string; projectId?: string }[], 
+  resources: { id: string; projectId?: string }[]
+) => {
+  const clientCount = clients.filter(c => 
+    project.clientIds.includes(c.id) || c.projectId === project.id
+  ).length;
+  const labourCount = labours.filter(l => 
+    project.labourIds.includes(l.id) || l.projectId === project.id
+  ).length;
+  const resourceCount = resources.filter(r => 
+    project.resourceIds.includes(r.id) || r.projectId === project.id
+  ).length;
+  return { clientCount, labourCount, resourceCount };
+};
 import { AddProjectModal } from '@/components/admin/AddProjectModal';
 import { EditProjectModal } from '@/components/admin/EditProjectModal';
 import { exportProjects } from '@/lib/exportUtils';
@@ -32,7 +51,7 @@ import { Project } from '@/data/mockData';
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
-  const { projects, deleteProject } = useData();
+  const { projects, clients, labours, resources, deleteProject } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -205,20 +224,25 @@ export default function ProjectsPage() {
                     <Progress value={project.progress} className="h-2" />
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-xs">
-                    <div>
-                      <p className="font-semibold text-foreground">{project.clientIds.length}</p>
-                      <p className="text-muted-foreground">Clients</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{project.labourIds.length}</p>
-                      <p className="text-muted-foreground">Labours</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{project.resourceIds.length}</p>
-                      <p className="text-muted-foreground">Resources</p>
-                    </div>
-                  </div>
+                  {(() => {
+                    const { clientCount, labourCount, resourceCount } = getLinkedCounts(project, clients, labours, resources);
+                    return (
+                      <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-xs">
+                        <div>
+                          <p className="font-semibold text-foreground">{clientCount}</p>
+                          <p className="text-muted-foreground">Clients</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">{labourCount}</p>
+                          <p className="text-muted-foreground">Labours</p>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">{resourceCount}</p>
+                          <p className="text-muted-foreground">Resources</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
                     <div className="flex justify-between">

@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -74,6 +75,7 @@ export function EditClientModal({ open, onOpenChange, client, onUpdate }: EditCl
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Client</DialogTitle>
+          <DialogDescription>Update client information and project assignment.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

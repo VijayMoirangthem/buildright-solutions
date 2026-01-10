@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -109,6 +110,7 @@ export function EditResourceModal({ open, onOpenChange, resource, onUpdate }: Ed
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Resource</DialogTitle>
+          <DialogDescription>Update resource details and inventory.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

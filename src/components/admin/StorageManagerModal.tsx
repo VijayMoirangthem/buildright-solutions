@@ -107,12 +107,15 @@ export function StorageManagerModal({ open, onOpenChange }: StorageManagerModalP
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" aria-describedby="storage-manager-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <HardDrive className="w-5 h-5" />
               Storage Manager
             </DialogTitle>
+            <p id="storage-manager-description" className="text-sm text-muted-foreground">
+              Manage your uploaded files and monitor storage usage
+            </p>
           </DialogHeader>
 
           {/* Storage Overview */}
