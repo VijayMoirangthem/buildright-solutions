@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -112,6 +113,7 @@ export function AddProjectModal({ open, onOpenChange }: AddProjectModalProps) {
       <DialogContent className="sm:max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add New Project</DialogTitle>
+          <DialogDescription>Create a new project and link clients, labours, and resources.</DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-4">
           <form onSubmit={handleSubmit} className="space-y-4">

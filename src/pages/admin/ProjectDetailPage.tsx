@@ -38,9 +38,16 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const linkedClients = clients.filter(c => project.clientIds.includes(c.id));
-  const linkedLabours = labours.filter(l => project.labourIds.includes(l.id));
-  const linkedResources = resources.filter(r => project.resourceIds.includes(r.id));
+  // Fix: Use both array-based linking AND projectId-based linking for bidirectional sync
+  const linkedClients = clients.filter(c => 
+    project.clientIds.includes(c.id) || c.projectId === project.id
+  );
+  const linkedLabours = labours.filter(l => 
+    project.labourIds.includes(l.id) || l.projectId === project.id
+  );
+  const linkedResources = resources.filter(r => 
+    project.resourceIds.includes(r.id) || r.projectId === project.id
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -78,6 +79,7 @@ export function EditLabourModal({ open, onOpenChange, labour, onUpdate }: EditLa
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Labour</DialogTitle>
+          <DialogDescription>Update labour information and project assignment.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
