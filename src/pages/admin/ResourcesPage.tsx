@@ -36,7 +36,7 @@ export default function ResourcesPage() {
     return files.filter(f => f.linkedTo?.type === 'resource' && f.linkedTo.id === resourceId);
   };
 
-  // Get client records that used this resource type
+  // Get client records that used this resource type (from both financialRecords and resourceUsage)
   const getResourceUsageRecords = (resourceType: string) => {
     const records: Array<{
       clientId: string;
@@ -47,9 +47,11 @@ export default function ResourcesPage() {
       amount: number;
       notes: string;
       attachmentIds: string[];
+      source: 'financial' | 'usage';
     }> = [];
 
     clients.forEach(client => {
+      // Check financialRecords with resourceType
       client.financialRecords?.forEach(record => {
         if (record.resourceType === resourceType && record.resourceQuantity) {
           records.push({
@@ -61,6 +63,24 @@ export default function ResourcesPage() {
             amount: record.amount,
             notes: record.notes,
             attachmentIds: record.attachments || [],
+            source: 'financial',
+          });
+        }
+      });
+
+      // Check resourceUsage array
+      client.resourceUsage?.forEach(usage => {
+        if (usage.resourceType === resourceType) {
+          records.push({
+            clientId: client.id,
+            clientName: client.name,
+            recordId: usage.id,
+            date: client.dateAdded, // Use client's date as reference
+            quantity: usage.quantity,
+            amount: usage.price,
+            notes: usage.notes,
+            attachmentIds: [],
+            source: 'usage',
           });
         }
       });
@@ -285,17 +305,22 @@ export default function ResourcesPage() {
                           {usageRecords.map((record) => {
                             const recordFiles = getRecordFiles(record.attachmentIds);
                             return (
-                              <div key={record.recordId} className="bg-background rounded-md p-3 border border-border">
+                              <div key={`${record.source}-${record.recordId}`} className="bg-background rounded-md p-3 border border-border">
                                 <div className="flex items-start justify-between">
-                                  <div>
-                                    <p className="text-sm font-medium text-foreground">{record.clientName}</p>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-medium text-foreground">{record.clientName}</p>
+                                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                        {record.source === 'financial' ? 'Financial Record' : 'Resource Usage'}
+                                      </Badge>
+                                    </div>
                                     <p className="text-xs text-muted-foreground">
                                       {new Date(record.date).toLocaleDateString('en-IN')}
                                     </p>
                                   </div>
                                   <div className="text-right">
                                     <p className="text-sm font-semibold text-primary">
-                                      {record.quantity} {resource.unit} used
+                                      {record.quantity.toLocaleString('en-IN')} {resource.unit} used
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                       ₹{record.amount.toLocaleString('en-IN')}
